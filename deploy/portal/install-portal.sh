@@ -11,9 +11,9 @@
 #   sudo BRICKWISE_BACKENDS="10.0.0.1:8756 10.0.0.2:8756" ./deploy/portal/install-portal.sh
 #
 # Archive or SIC only on one node — pin redirects (optional):
-#   sudo ARCHIVE_REDIRECT_HOST=marvin.lan SIC_REDIRECT_HOST=eddie.lan ./deploy/portal/install-portal.sh
+#   sudo ARCHIVE_REDIRECT_HOST=eddie.lan SIC_REDIRECT_HOST=eddie.lan ./deploy/portal/install-portal.sh
 #
-# Replicated Archive + SIC (Marvin + Eddie) — reverse-proxy under /archive/ and /sic/ instead of redirects:
+# Replicated Archive + SIC (Marvin + Eddie) — reverse-proxy under /nc/archive/ and /nc/sic/ instead of redirects:
 #   sudo ARCHIVE_BACKENDS="10.0.0.1:8000 10.0.0.2:8000" \
 #        SIC_BACKENDS="10.0.0.1:8787 10.0.0.2:8787" ./deploy/portal/install-portal.sh
 # When ARCHIVE_BACKENDS / SIC_BACKENDS are unset, portal uses HTTP redirects to :ARCHIVE_PORT / :SIC_PORT (same as $host).
@@ -27,7 +27,7 @@
 # CEO-Simulator (Flask central — Framework :8080; default backend 8080):
 #   sudo CEO_SIMULATOR_BACKENDS="10.0.0.1:8080" ./deploy/portal/install-portal.sh
 #
-# Project prioritiser (moneymakers/projectscan.py — default 8765, path /projects/):
+# Project prioritiser (moneymakers/projectscan.py — default 8765, path /nc/projects/):
 #   PROJECTSCAN_BACKENDS unset → proxy to 127.0.0.1:${PROJECTSCAN_PORT}
 #
 # WorkAdventure (Traefik on host port 9080 by default when NerveCentre owns :80):
@@ -60,14 +60,26 @@ JONOTRON_LB_METHOD="${JONOTRON_LB_METHOD:-least_conn}"
 CEO_SIMULATOR_PORT="${CEO_SIMULATOR_PORT:-8080}"
 CEO_SIMULATOR_BACKENDS="${CEO_SIMULATOR_BACKENDS:-}"
 CEO_SIMULATOR_LB_METHOD="${CEO_SIMULATOR_LB_METHOD:-least_conn}"
+CEOS_API_PORT="${CEOS_API_PORT:-8004}"
+CEOS_API_BACKENDS="${CEOS_API_BACKENDS:-}"
+CEOS_API_LB_METHOD="${CEOS_API_LB_METHOD:-least_conn}"
 DEANOTRON_PORT="${DEANOTRON_PORT:-8791}"
+CHARKIVE_PORT="${CHARKIVE_PORT:-8082}"
+MAIL_PORTAL_PORT="${MAIL_PORTAL_PORT:-8083}"
+
+PORTAL_PREFIX="/nc"
+VPN_PORTAL_PORT="${VPN_PORTAL_PORT:-8084}"
+SURVEY_PORTAL_PORT="${SURVEY_PORTAL_PORT:-8086}"
+AITEAMS_PORTAL_PORT="${AITEAMS_PORTAL_PORT:-8087}"
+HW_PORTAL_PORT="${HW_PORTAL_PORT:-8088}"
+FD_PORTAL_PORT="${FD_PORTAL_PORT:-8089}"
 # WorkAdventure: optional full redirect URL; else NERVECENTRE_LAN_IP + WORKADVENTURE_PORT (Traefik publish port); else *.localhost
 NERVECENTRE_LAN_IP="${NERVECENTRE_LAN_IP:-}"
 WORKADVENTURE_URL="${WORKADVENTURE_URL:-}"
 WORKADVENTURE_PLAY_HOST="${WORKADVENTURE_PLAY_HOST:-play.workadventure.localhost}"
 # Host port where WorkAdventure Traefik listens (docker compose reverse-proxy 9080:80).
 WORKADVENTURE_PORT="${WORKADVENTURE_PORT:-9080}"
-# moneymakers/projectscan.py dashboard (nginx strips /projects/ → backend /)
+# moneymakers/projectscan.py dashboard (nginx strips /nc/projects/ → backend /)
 PROJECTSCAN_PORT="${PROJECTSCAN_PORT:-8765}"
 PROJECTSCAN_BACKENDS="${PROJECTSCAN_BACKENDS:-}"
 WWW="${WWW:-/var/www/splippers-portal}"
@@ -255,6 +267,42 @@ ceosimulator_upstream_block() {
   echo "}"
 }
 
+ceosapi_upstream_block() {
+  local lb="" backends=""
+  if [[ -z "${CEOS_API_BACKENDS// }" ]]; then
+    backends="127.0.0.1:${CEOS_API_PORT}"
+  else
+    backends="${CEOS_API_BACKENDS}"
+  fi
+
+  case "${CEOS_API_LB_METHOD}" in
+    least_conn) lb="least_conn;" ;;
+    ip_hash)    lb="ip_hash;" ;;
+    round_robin|"")
+      lb=""
+      ;;
+    *)
+      echo "Unknown CEOS_API_LB_METHOD=${CEOS_API_LB_METHOD} (use least_conn, ip_hash, or round_robin)." >&2
+      exit 1
+      ;;
+  esac
+
+  echo "upstream nerve_ceos_api {"
+  if [[ -n "${lb}" ]]; then
+    echo "    ${lb}"
+  fi
+  for be in ${backends}; do
+    echo "    server ${be};"
+  done
+  echo "}"
+}
+
+charkive_upstream_block() {
+  echo "upstream nerve_charkive {"
+  echo "    server 127.0.0.1:${CHARKIVE_PORT};"
+  echo "}"
+}
+
 archive_redirect_stmt() {
   if [[ -n "${ARCHIVE_REDIRECT_HOST:-}" ]]; then
     echo "return 302 http://${ARCHIVE_REDIRECT_HOST}:${ARCHIVE_PORT}/;"
@@ -276,6 +324,54 @@ deanotron_redirect_stmt() {
     echo "return 302 http://${DEANOTRON_REDIRECT_HOST}:${DEANOTRON_PORT}/;"
   else
     echo "return 302 http://\$host:${DEANOTRON_PORT}/;"
+  fi
+}
+
+mailportal_redirect_stmt() {
+  if [[ -n "${MAIL_PORTAL_REDIRECT_HOST:-}" ]]; then
+    echo "return 302 http://${MAIL_PORTAL_REDIRECT_HOST}:${MAIL_PORTAL_PORT}/;"
+  else
+    echo "return 302 http://\$host:${MAIL_PORTAL_PORT}/;"
+  fi
+}
+
+vpnportal_redirect_stmt() {
+  if [[ -n "${VPN_PORTAL_REDIRECT_HOST:-}" ]]; then
+    echo "return 302 http://${VPN_PORTAL_REDIRECT_HOST}:${VPN_PORTAL_PORT}/;"
+  else
+    echo "return 302 http://\$host:${VPN_PORTAL_PORT}/;"
+  fi
+}
+
+surveyportal_redirect_stmt() {
+  if [[ -n "${SURVEY_PORTAL_REDIRECT_HOST:-}" ]]; then
+    echo "return 302 http://${SURVEY_PORTAL_REDIRECT_HOST}:${SURVEY_PORTAL_PORT}/;"
+  else
+    echo "return 302 http://\$host:${SURVEY_PORTAL_PORT}/;"
+  fi
+}
+
+aiteams_redirect_stmt() {
+  if [[ -n "${AITEAMS_PORTAL_REDIRECT_HOST:-}" ]]; then
+    echo "return 302 http://${AITEAMS_PORTAL_REDIRECT_HOST}:${AITEAMS_PORTAL_PORT}/;"
+  else
+    echo "return 302 http://\$host:${AITEAMS_PORTAL_PORT}/;"
+  fi
+}
+
+hardwareportal_redirect_stmt() {
+  if [[ -n "${HW_PORTAL_REDIRECT_HOST:-}" ]]; then
+    echo "return 302 http://${HW_PORTAL_REDIRECT_HOST}:${HW_PORTAL_PORT}/;"
+  else
+    echo "return 302 http://\$host:${HW_PORTAL_PORT}/;"
+  fi
+}
+
+fleetdynamics_redirect_stmt() {
+  if [[ -n "${FD_PORTAL_REDIRECT_HOST:-}" ]]; then
+    echo "return 302 http://${FD_PORTAL_REDIRECT_HOST}:${FD_PORTAL_PORT}/;"
+  else
+    echo "return 302 http://\$host:${FD_PORTAL_PORT}/;"
   fi
 }
 
@@ -306,6 +402,12 @@ workadventure_redirect_stmt() {
 ARCH_LINE="$(archive_redirect_stmt)"
 SIC_LINE="$(sic_redirect_stmt)"
 DEAN_LINE="$(deanotron_redirect_stmt)"
+MAIL_LINE="$(mailportal_redirect_stmt)"
+VPN_LINE="$(vpnportal_redirect_stmt)"
+SURVEY_LINE="$(surveyportal_redirect_stmt)"
+AITEAMS_LINE="$(aiteams_redirect_stmt)"
+HW_LINE="$(hardwareportal_redirect_stmt)"
+FD_LINE="$(fleetdynamics_redirect_stmt)"
 WA_LINE="$(workadventure_redirect_stmt)"
 
 if [[ -n "${ARCHIVE_BACKENDS// }" ]]; then
@@ -355,6 +457,16 @@ if [[ -n "${SIC_BACKENDS// }" ]]; then
         return 301 http://\$host/sic/;
     }
 
+    # SIC WebSocket — React hardcodes ws://host/ws; intercept before the / catch-all.
+    location /ws {
+        proxy_pass http://nerve_sic;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_read_timeout 3600s;
+    }
+
     location /sic/ {
         proxy_pass http://nerve_sic/;
         proxy_http_version 1.1;
@@ -366,6 +478,8 @@ if [[ -n "${SIC_BACKENDS// }" ]]; then
 
         sub_filter_types application/javascript application/json;
         sub_filter_once off;
+        sub_filter '"/assets/' '"/sic/assets/';
+        sub_filter "'/assets/" "'/sic/assets/";
         sub_filter '"/api/' '"/sic/api/';
         sub_filter "'/api/" "'/sic/api/";
     }
@@ -399,6 +513,8 @@ TMP="$(mktemp)"
   monyatron_upstream_block
   jonotron_upstream_block
   ceosimulator_upstream_block
+  ceosapi_upstream_block
+  charkive_upstream_block
   projectscan_upstream_block
   cat <<NGINX
 server {
@@ -489,8 +605,62 @@ server {
         sub_filter '"/api/' '"/ceo-simulator/api/';
         sub_filter "'/api/" "'/ceo-simulator/api/";
     }
+
+    location = /ceos-api {
+        return 301 http://\$host/ceos-api/;
+    }
+
+    # CEOS 4.0 API (FastAPI/uvicorn): strip /ceos-api/ prefix; rewrite JSON path refs for browser.
+    location /ceos-api/ {
+        proxy_pass http://nerve_ceos_api/;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_read_timeout 600s;
+        proxy_set_header Accept-Encoding "";
+
+        sub_filter_types application/javascript application/json;
+        sub_filter_once off;
+        sub_filter '"/docs'   '"/ceos-api/docs';
+        sub_filter '"/openapi' '"/ceos-api/openapi';
+    }
 ${ARCHIVE_LOC_BODY}
 ${SIC_LOC_BODY}
+
+    # CF Tunnel Setup Portal — standalone Flask app on port 8085.
+    location = /cf {
+        return 301 http://\$host/cf/;
+    }
+    location /cf/ {
+        proxy_pass http://127.0.0.1:8085/;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+
+    location = /charkive {
+        return 301 http://\$host/charkive/;
+    }
+
+    # Charkive (FastAPI web dashboard): strip /charkive/ prefix; rewrite API + static paths in JS.
+    location /charkive/ {
+        proxy_pass http://nerve_charkive/;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_read_timeout 120s;
+        proxy_set_header Accept-Encoding "";
+
+        sub_filter_types application/javascript;
+        sub_filter_once off;
+        sub_filter '"/api/' '"/charkive/api/';
+        sub_filter "'/api/" "'/charkive/api/";
+        sub_filter '"/static/' '"/charkive/static/';
+        sub_filter "'/static/" "'/charkive/static/";
+    }
 
     # Deanotron (Expo web) — absolute asset paths; redirect to dedicated port (see Deanotron deploy/).
     location = /deanotron {
@@ -498,6 +668,54 @@ ${SIC_LOC_BODY}
     }
     location /deanotron/ {
         ${DEAN_LINE}
+    }
+
+    # Ceo-Sim Mail Portal — standalone Flask app with absolute paths; redirect to dedicated port.
+    location = /mail-portal {
+        ${MAIL_LINE}
+    }
+    location /mail-portal/ {
+        ${MAIL_LINE}
+    }
+
+    # VPN Portal — WireGuard peer management Flask app.
+    location = /vpn-portal {
+        ${VPN_LINE}
+    }
+    location /vpn-portal/ {
+        ${VPN_LINE}
+    }
+
+    # Survey Portal — add ideas and context to projects.
+    location = /survey-portal {
+        ${SURVEY_LINE}
+    }
+    location /survey-portal/ {
+        ${SURVEY_LINE}
+    }
+
+    # AI Teams Portal — manage teams, assignments, activity.
+    location = /ai-teams {
+        ${AITEAMS_LINE}
+    }
+    location /ai-teams/ {
+        ${AITEAMS_LINE}
+    }
+
+    # Hardware Resources Portal — fleet inventory, load monitoring, bottlenecks.
+    location = /hardware {
+        ${HW_LINE}
+    }
+    location /hardware/ {
+        ${HW_LINE}
+    }
+
+    # Fleet Dynamics — live health, cough tests, node invitations.
+    location = /fleet {
+        ${FD_LINE}
+    }
+    location /fleet/ {
+        ${FD_LINE}
     }
 
     # WorkAdventure — Traefik multi-host setup; redirect to play URL (configure WORKADVENTURE_* env vars).
@@ -522,7 +740,18 @@ ${SIC_LOC_BODY}
         proxy_read_timeout 120s;
     }
 
-    # Everything else under this host:80 — serve static files; / → index.html (NerveCentre UI)
+    # NerveCentre portal also available at /nc/ (alias to WWW root)
+    location /nc/ {
+        alias ${WWW}/;
+        index index.html;
+    }
+
+    # /nc without trailing slash → /nc/
+    location = /nc {
+        return 301 /nc/;
+    }
+
+    # Everything else — serve static files; / → index.html (NerveCentre UI)
     location / {
         try_files \$uri \$uri/ /index.html;
     }
@@ -570,7 +799,7 @@ else
 fi
 
 echo "Splippers portal (NerveCentre) installed."
-echo "  Static files: ${WWW}"
+echo "  Static files: ${WWW}/"
 echo "  Config: /etc/nginx/sites-available/${SITE_NAME}.conf"
 if [[ -z "${BRICKWISE_BACKENDS// }" ]]; then
   echo "  Brickwise upstream: 127.0.0.1:${BW_PORT} (set BRICKWISE_BACKENDS for load balancing)"
@@ -602,7 +831,18 @@ if [[ -z "${CEO_SIMULATOR_BACKENDS// }" ]]; then
 else
   echo "  CEO-Simulator upstream (load-balanced): ${CEO_SIMULATOR_BACKENDS}"
 fi
-echo "  Deanotron redirect: ${DEANOTRON_REDIRECT_HOST:-\$host}:${DEANOTRON_PORT} (Expo web)"
+if [[ -z "${CEOS_API_BACKENDS// }" ]]; then
+  echo "  CEOS 4.0 API upstream: 127.0.0.1:${CEOS_API_PORT} (set CEOS_API_BACKENDS to load-balance)"
+else
+  echo "  CEOS 4.0 API upstream (load-balanced): ${CEOS_API_BACKENDS}"
+fi
+  echo "  Charkive:  http://127.0.0.1:${CHARKIVE_PORT}/ (portal /charkive/ → proxy)"
+  echo "  Deanotron redirect: ${DEANOTRON_REDIRECT_HOST:-\$host}:${DEANOTRON_PORT} (Expo web)"
+  echo "  Ceo-Sim Mail Portal redirect: ${MAIL_PORTAL_REDIRECT_HOST:-\$host}:${MAIL_PORTAL_PORT} (mail compose UI)"
+  echo "  Survey Portal redirect: ${SURVEY_PORTAL_REDIRECT_HOST:-\$host}:${SURVEY_PORTAL_PORT} (project ideas/context)"
+  echo "  AI Teams Portal redirect: ${AITEAMS_PORTAL_REDIRECT_HOST:-\$host}:${AITEAMS_PORTAL_PORT} (team management)"
+  echo "  Hardware Portal redirect: ${HW_PORTAL_REDIRECT_HOST:-\$host}:${HW_PORTAL_PORT} (fleet/load/bottlenecks)"
+  echo "  Fleet Dynamics redirect: ${FD_PORTAL_REDIRECT_HOST:-\$host}:${FD_PORTAL_PORT} (live health/cough/invite)"
 if [[ -n "${WORKADVENTURE_URL:-}" ]]; then
   echo "  WorkAdventure (/workadventure/): redirect → ${WORKADVENTURE_URL}"
 elif [[ -n "${NERVECENTRE_LAN_IP:-}" ]]; then
@@ -623,4 +863,5 @@ if [[ -z "${PROJECTSCAN_BACKENDS// }" ]]; then
 else
   echo "  Project prioritiser (/projects/): upstream ${PROJECTSCAN_BACKENDS}"
 fi
-echo "Open http://$(hostname -I 2>/dev/null | awk '{print $1}')/ or your load-balanced VIP."
+echo "  Internal: http://$(hostname -I 2>/dev/null | awk '{print $1}')/nc/"
+echo "  External: https://nervecentre.splippers.com/nc/"
