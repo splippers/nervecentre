@@ -751,6 +751,12 @@ ${SIC_LOC_BODY}
         return 301 /nc/;
     }
 
+    # nc.splippers.com bare root → /nc/ (tunnel entry point)
+    location = / {
+        if (\$http_host = "nc.splippers.com") { return 301 https://nc.splippers.com/nc/; }
+        try_files \$uri \$uri/ /index.html;
+    }
+
     # Everything else — serve static files; / → index.html (NerveCentre UI)
     location / {
         try_files \$uri \$uri/ /index.html;
