@@ -522,6 +522,14 @@ server {
     listen [::]:80 default_server;
     server_name _;
 
+    # Security headers
+    server_tokens off;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "geolocation=(), camera=(), microphone=()" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+
     # Unified NerveCentre landing page is the default for http://host/ and http://host:80/
     root "${WWW}";
     index index.html;
