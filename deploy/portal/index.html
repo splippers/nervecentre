@@ -15,13 +15,23 @@
       --text: #e9eef5;
       --muted: #94a3b8;
       --brickwise: #38bdf8;
-      --archive: #fbbf24;
-      --sic: #c084fc;
+--sic: #c084fc;
       --monyatron: #2dd4bf;
       --jonotron: #fb923c;
       --deanotron: #f472b6;
       --projects: #4ade80;
       --workadventure: #a78bfa;
+      --mailportal: #f472b6;
+      --vpnportal: #22d3ee;
+      --cfportal: #f6821f;
+      --surveyportal: #4ade80;
+      --aiteams: #c084fc;
+      --hardware: #38bdf8;
+      --fleetdynamics: #f472b6;
+      --felsted: #c9a84c;
+      --felsted-classic: #8b9dc3;
+      --charkive: #d4872a;
+      --ceosapi: #a3e635;
       --card-radius: 18px;
     }
     * { box-sizing: border-box; }
@@ -103,12 +113,7 @@
       background: rgba(56, 189, 248, 0.12);
       border: 1px solid rgba(56, 189, 248, 0.28);
     }
-    .card--archive .badge {
-      color: var(--archive);
-      background: rgba(251, 191, 36, 0.1);
-      border: 1px solid rgba(251, 191, 36, 0.28);
-    }
-    .card--sic .badge {
+.card--sic .badge {
       color: var(--sic);
       background: rgba(192, 132, 252, 0.11);
       border: 1px solid rgba(192, 132, 252, 0.28);
@@ -157,13 +162,34 @@
       opacity: 0.92;
     }
     a.card--brickwise .cta { color: var(--brickwise); }
-    a.card--archive .cta { color: var(--archive); }
-    a.card--sic .cta { color: var(--sic); }
+a.card--sic .cta { color: var(--sic); }
     a.card--monyatron .cta { color: var(--monyatron); }
     a.card--jonotron .cta { color: var(--jonotron); }
     a.card--deanotron .cta { color: var(--deanotron); }
     a.card--projects .cta { color: var(--projects); }
     a.card--workadventure .cta { color: var(--workadventure); }
+.card--mailportal .badge { color: var(--mailportal); background: rgba(244, 114, 182, 0.11); border: 1px solid rgba(244, 114, 182, 0.28); }
+a.card--mailportal .cta { color: var(--mailportal); }
+    .card--vpnportal .badge { color: var(--vpnportal); background: rgba(34, 211, 238, 0.11); border: 1px solid rgba(34, 211, 238, 0.28); }
+    a.card--vpnportal .cta { color: var(--vpnportal); }
+    .card--cfportal .badge { color: var(--cfportal); background: rgba(246, 130, 31, 0.11); border: 1px solid rgba(246, 130, 31, 0.28); }
+    a.card--cfportal .cta { color: var(--cfportal); }
+    .card--surveyportal .badge { color: var(--surveyportal); background: rgba(74, 222, 128, 0.11); border: 1px solid rgba(74, 222, 128, 0.28); }
+    a.card--surveyportal .cta { color: var(--surveyportal); }
+    .card--aiteams .badge { color: var(--aiteams); background: rgba(192, 132, 252, 0.11); border: 1px solid rgba(192, 132, 252, 0.28); }
+    a.card--aiteams .cta { color: var(--aiteams); }
+    .card--hardware .badge { color: var(--hardware); background: rgba(56, 189, 248, 0.11); border: 1px solid rgba(56, 189, 248, 0.28); }
+    a.card--hardware .cta { color: var(--hardware); }
+    .card--fleetdynamics .badge { color: var(--fleetdynamics); background: rgba(244, 114, 182, 0.11); border: 1px solid rgba(244, 114, 182, 0.28); }
+    a.card--fleetdynamics .cta { color: var(--fleetdynamics); }
+    .card--felsted .badge { color: var(--felsted); background: rgba(201, 168, 76, 0.12); border: 1px solid rgba(201, 168, 76, 0.28); }
+    a.card--felsted .cta { color: var(--felsted); }
+    .card--felsted-classic .badge { color: var(--felsted-classic); background: rgba(139, 157, 195, 0.11); border: 1px solid rgba(139, 157, 195, 0.28); }
+    a.card--felsted-classic .cta { color: var(--felsted-classic); }
+    .card--charkive .badge { color: var(--charkive); background: rgba(212, 135, 42, 0.12); border: 1px solid rgba(212, 135, 42, 0.28); }
+    a.card--charkive .cta { color: var(--charkive); }
+    .card--ceosapi .badge { color: var(--ceosapi); background: rgba(163, 230, 53, 0.1); border: 1px solid rgba(163, 230, 53, 0.28); }
+    a.card--ceosapi .cta { color: var(--ceosapi); }
     /* Project prioritiser: dashboard + standalone Drive guide link */
     .card-split {
       border-radius: var(--card-radius);
@@ -220,7 +246,7 @@
   <div class="wrap">
     <header>
       <h1>NerveCentre</h1>
-      <p>Unified Splippers entry — Brickwise, Splippers Archive, SIC, Monyatron, Deanotron, Jonotron, WorkAdventure, plus local project prioritisation. Use from your VIP or any load-balanced node (e.g. Eddie, Marvin).</p>
+      <p>Unified Splitters entry — <a href="https://nervecentre.splippers.com/nc/" style="color:var(--vpnportal);">nervecentre.splippers.com/nc/</a> (TLS, Access restricted). Internal: <a href="http://192.168.1.1/nc/" style="color:var(--monyatron);">192.168.1.1/nc/</a>. Brickwise, SIC, Monyatron, Deanotron, Jonotron, Charkive, WorkAdventure, plus local project prioritisation. Hosted on <strong>EDDIE</strong> (192.168.1.1).</p>
     </header>
     <nav class="grid" aria-label="Splippers apps and workspace tools">
       <a class="card card--brickwise" href="/brickwise/">
@@ -229,17 +255,53 @@
         <p class="blurb">GlusterFS cluster diagnostics, replication health, heal backlog, and LAN charts.</p>
         <span class="cta">Open Brickwise →</span>
       </a>
-      <a class="card card--archive" href="/archive/">
-        <span class="badge">Archive</span>
-        <h2>Splippers Archive</h2>
-        <p class="blurb">Browse enriched media trees, metadata, and classifications from your archive scan.</p>
-        <span class="cta">Open Splippers Archive →</span>
-      </a>
       <a class="card card--sic" href="/sic/">
         <span class="badge">Arena</span>
         <h2>SIC — Symposium of Infinite Contention</h2>
         <p class="blurb">LAN debating arena: philosopher personas, live chair control, optional Ent Mode.</p>
         <span class="cta">Open SIC →</span>
+      </a>
+      <a class="card card--mailportal" href="/mail-portal/">
+        <span class="badge">Comms</span>
+        <h2>Mail Portal</h2>
+        <p class="blurb">Ceo-Sim Mail Portal — compose messages to 42, ideas, ops, or any staff role. View thread history and track job status.</p>
+        <span class="cta">Open Mail Portal →</span>
+      </a>
+      <a class="card card--vpnportal" href="/vpn-portal/">
+        <span class="badge">Network</span>
+        <h2>VPN Portal</h2>
+        <p class="blurb">WireGuard peer management — create, view QR codes, and revoke VPN peers. Enrol mobile devices for secure LAN access.</p>
+        <span class="cta">Open VPN Portal →</span>
+      </a>
+      <a class="card card--cfportal" href="/cf/">
+        <span class="badge">Cloudflare</span>
+        <h2>Cloudflare Tunnel Setup</h2>
+        <p class="blurb">Guided setup for nc.splippers.com via Cloudflare Tunnel. No port forwarding — secure outbound-only tunnel to serve NerveCentre publicly.</p>
+        <span class="cta">Open CF Tunnel Setup →</span>
+      </a>
+      <a class="card card--surveyportal" href="/survey-portal/">
+        <span class="badge">Survey</span>
+        <h2>Project Survey Portal</h2>
+        <p class="blurb">Add ideas, context, and notes to any project. Feed the AI teams with your vision, pain points, and desired features — keeps everyone aligned.</p>
+        <span class="cta">Open Survey Portal →</span>
+      </a>
+      <a class="card card--aiteams" href="/ai-teams/">
+        <span class="badge">Teams</span>
+        <h2>AI Teams Portal</h2>
+        <p class="blurb">Manage AI agent teams, assign projects, track activity. Create teams with specific models, assign workloads, and view the full activity history.</p>
+        <span class="cta">Open AI Teams →</span>
+      </a>
+      <a class="card card--hardware" href="/hardware/">
+        <span class="badge">Infra</span>
+        <h2>Hardware Resources</h2>
+        <p class="blurb">Fleet inventory of all 7 nodes (88 GB total RAM). Real-time load monitoring, workload allocations, and bottleneck detection with rebalance suggestions.</p>
+        <span class="cta">Open Hardware →</span>
+      </a>
+      <a class="card card--fleetdynamics" href="/fleet/">
+        <span class="badge">🫁 Fleet</span>
+        <h2>Fleet Dynamics</h2>
+        <p class="blurb">Live fleet health monitoring with cough tests, full physicals, node invitations. Perform a "cough test" on any node to check its vital signs with full medical pageantry.</p>
+        <span class="cta">Open Fleet Dynamics →</span>
       </a>
       <a class="card card--monyatron" href="/monyatron/">
         <span class="badge">Writing</span>
@@ -265,6 +327,30 @@
         <p class="blurb">Collaborative virtual office — video chat, maps, and avatars. Opens Traefik on this host (port <strong>9080</strong> by default). Browsers still need <code>*.workadventure.localhost</code> to resolve: use <a href="/workadventure-hosts.txt">hosts-file snippet</a> (installed when the portal is deployed with <code>NERVECENTRE_LAN_IP</code>).</p>
         <span class="cta">Open WorkAdventure →</span>
       </a>
+      <a class="card card--felsted" href="http://192.168.1.1:8000/?modern=1">
+        <span class="badge">Archive</span>
+        <h2>Felsted Archives</h2>
+        <p class="blurb">Modernised local replica of the Felsted School Archives — 3,500+ photos, albums, war memorial, Old Felstedians database, and school history.</p>
+        <span class="cta">Open Felsted Archives →</span>
+      </a>
+      <a class="card card--felsted-classic" href="http://192.168.1.1:8000/classic/">
+        <span class="badge">Archive</span>
+        <h2>Felsted Archives (Classic)</h2>
+        <p class="blurb">Original-styled version of the local Felsted Archive replica with the classic CSS and layout preserved as-is.</p>
+        <span class="cta">Open Felsted Archives (Classic) →</span>
+      </a>
+      <a class="card card--ceosapi" href="/ceos-api/docs">
+        <span class="badge">CEOS 4.0</span>
+        <h2>CEOS API</h2>
+        <p class="blurb">Federated corporate simulation platform — share registers, market simulation, kindness ledger, agent NPCs, and federation relay. Kindness is the golden thread.</p>
+        <span class="cta">Open CEOS API →</span>
+      </a>
+      <a class="card card--charkive" href="/charkive/">
+        <span class="badge">SANity</span>
+        <h2>Charkive</h2>
+        <p class="blurb">Burn away SAN fluff — tiered cache/temp/orphan quarantine. All tiers go to 11.</p>
+        <span class="cta">Open Charkive →</span>
+      </a>
       <div class="card-split">
         <div class="card-split-inner">
           <a class="card-split-primary card--projects" href="/projects/">
@@ -277,7 +363,7 @@
         </div>
       </div>
     </nav>
-    <footer>Port 80 · NerveCentre · <code>/projects/</code> → systemd <code>projectscan-dashboard.service</code> (default <code>:8765</code>) · <code>/deanotron/</code> → <code>:8791</code> · <code>/workadventure/</code> → WorkAdventure play URL · load-balanced VIPs need backends on each node.</footer>
+    <footer>Port 80 · NerveCentre · <code>/projects/</code> → <code>:8765</code> · <code>/survey-portal/</code> → <code>:8086</code> · <code>/ai-teams/</code> → <code>:8087</code> · <code>/hardware/</code> → <code>:8088</code> · <code>/fleet/</code> → <code>:8089</code> · <code>/deanotron/</code> → <code>:8791</code> · <code>/mail-portal/</code> → <code>:8083</code> · <code>/vpn-portal/</code> → <code>:8084</code> · <code>/ceos-api/</code> → <code>:8004</code> · <code>/charkive/</code> → <code>:8082</code> · <code>/cf/</code> → <code>:8085</code> · <code>/workadventure/</code> → WorkAdventure · <a href="https://nervecentre.splippers.com/nc/" style="color:var(--vpnportal);">nervecentre.splippers.com/nc/</a> (TLS, Access) · Hosted on EDDIE (192.168.1.1).</footer>
   </div>
 </body>
 </html>
