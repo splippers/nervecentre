@@ -748,6 +748,18 @@ ${SIC_LOC_BODY}
         proxy_read_timeout 120s;
     }
 
+    # Maldon Reborn — static heritage site (no trailing slash redirect needed, try_files handles it)
+    location = /maldon-reborn {
+        return 301 http://\$host/maldon-reborn/;
+    }
+    location /maldon-reborn/ {
+        alias /mnt/SANDIEGO/Projects/maldon-reborn/web/;
+        index index.html;
+    }
+    location /maldon-reborn/photos/ {
+        alias /mnt/SANDIEGO/Projects/maldon-reborn/photos/;
+    }
+
     # NerveCentre portal also available at /nc/ (alias to WWW root)
     location /nc/ {
         alias ${WWW}/;

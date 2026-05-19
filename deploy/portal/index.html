@@ -31,7 +31,9 @@
       --felsted: #c9a84c;
       --felsted-classic: #8b9dc3;
       --charkive: #d4872a;
+      --maldon: #c47a35;
       --ceosapi: #a3e635;
+      --netportal: #34d399;
       --card-radius: 18px;
     }
     * { box-sizing: border-box; }
@@ -190,6 +192,28 @@ a.card--mailportal .cta { color: var(--mailportal); }
     a.card--charkive .cta { color: var(--charkive); }
     .card--ceosapi .badge { color: var(--ceosapi); background: rgba(163, 230, 53, 0.1); border: 1px solid rgba(163, 230, 53, 0.28); }
     a.card--ceosapi .cta { color: var(--ceosapi); }
+    .card--netportal .badge { color: var(--netportal); background: rgba(52, 211, 153, 0.1); border: 1px solid rgba(52, 211, 153, 0.28); }
+    a.card--netportal .cta { color: var(--netportal); }
+    .card--maldon .badge { color: var(--maldon); background: rgba(196, 122, 53, 0.12); border: 1px solid rgba(196, 122, 53, 0.28); }
+    a.card--maldon .cta { color: var(--maldon); }
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 2.25rem 0 1.15rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--netportal);
+      opacity: 0.8;
+    }
+    .section-label::before, .section-label::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: rgba(52, 211, 153, 0.18);
+    }
     /* Project prioritiser: dashboard + standalone Drive guide link */
     .card-split {
       border-radius: var(--card-radius);
@@ -339,6 +363,12 @@ a.card--mailportal .cta { color: var(--mailportal); }
         <p class="blurb">Original-styled version of the local Felsted Archive replica with the classic CSS and layout preserved as-is.</p>
         <span class="cta">Open Felsted Archives (Classic) →</span>
       </a>
+      <a class="card card--maldon" href="/maldon-reborn/">
+        <span class="badge">Heritage</span>
+        <h2>Maldon Reborn</h2>
+        <p class="blurb">Hyper-photogrammetry reconstruction of the Witham–Maldon railway branch (1848–1964). Eight miles. Built by hand. Closed by memo.</p>
+        <span class="cta">Open Maldon Reborn →</span>
+      </a>
       <a class="card card--ceosapi" href="/ceos-api/docs">
         <span class="badge">CEOS 4.0</span>
         <h2>CEOS API</h2>
@@ -363,7 +393,30 @@ a.card--mailportal .cta { color: var(--mailportal); }
         </div>
       </div>
     </nav>
-    <footer>Port 80 · NerveCentre · <code>/projects/</code> → <code>:8765</code> · <code>/survey-portal/</code> → <code>:8086</code> · <code>/ai-teams/</code> → <code>:8087</code> · <code>/hardware/</code> → <code>:8088</code> · <code>/fleet/</code> → <code>:8089</code> · <code>/deanotron/</code> → <code>:8791</code> · <code>/mail-portal/</code> → <code>:8083</code> · <code>/vpn-portal/</code> → <code>:8084</code> · <code>/ceos-api/</code> → <code>:8004</code> · <code>/charkive/</code> → <code>:8082</code> · <code>/cf/</code> → <code>:8085</code> · <code>/workadventure/</code> → WorkAdventure · <a href="https://nervecentre.splippers.com/nc/" style="color:var(--vpnportal);">nervecentre.splippers.com/nc/</a> (TLS, Access) · Hosted on EDDIE (192.168.1.1).</footer>
+
+    <div class="section-label">LAN &amp; Network</div>
+    <nav class="grid" aria-label="Network and DNS tools">
+      <a class="card card--netportal" href="/net/">
+        <span class="badge">DHCP</span>
+        <h2>DHCP Leases</h2>
+        <p class="blurb">Live lease table from both EDDIE (.150–.249) and MARVIN (.50–.149). See IP, hostname, MAC, and expiry at a glance.</p>
+        <span class="cta">View Leases →</span>
+      </a>
+      <a class="card card--netportal" href="/net/#dns">
+        <span class="badge">DNS</span>
+        <h2>DNS Query</h2>
+        <p class="blurb">Run A, AAAA, MX, PTR, TXT, CNAME, and SRV queries against MARVIN's dnsmasq resolver. Covers <code>.lan</code> and upstream zones.</p>
+        <span class="cta">Query DNS →</span>
+      </a>
+      <a class="card card--netportal" href="/net/#ping">
+        <span class="badge">Utils</span>
+        <h2>Network Utilities</h2>
+        <p class="blurb">Ping any LAN host or public address. View <code>/etc/hosts</code> and the live dnsmasq config across both servers.</p>
+        <span class="cta">Open Utils →</span>
+      </a>
+    </nav>
+
+    <footer>Port 80 · NerveCentre · <code>/net/</code> → <code>:8091</code> · <code>/projects/</code> → <code>:8765</code> · <code>/survey-portal/</code> → <code>:8086</code> · <code>/ai-teams/</code> → <code>:8087</code> · <code>/hardware/</code> → <code>:8088</code> · <code>/fleet/</code> → <code>:8089</code> · <code>/deanotron/</code> → <code>:8791</code> · <code>/mail-portal/</code> → <code>:8083</code> · <code>/vpn-portal/</code> → <code>:8084</code> · <code>/ceos-api/</code> → <code>:8004</code> · <code>/charkive/</code> → <code>:8082</code> · <code>/cf/</code> → <code>:8085</code> · <code>/workadventure/</code> → WorkAdventure · <a href="https://nervecentre.splippers.com/nc/" style="color:var(--vpnportal);">nervecentre.splippers.com/nc/</a> (TLS, Access) · Hosted on EDDIE (192.168.1.1).</footer>
   </div>
 </body>
 </html>
