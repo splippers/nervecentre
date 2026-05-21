@@ -1,0 +1,23 @@
+[Unit]
+Description=SplipChat — multi-AI chat hub (NerveCentre)
+After=network.target
+
+[Service]
+Type=simple
+User=jon
+WorkingDirectory=/mnt/SANDIEGO/Projects/nervecentre/deploy/splipcast
+Environment=SPLIPCAST_PORT=8090
+Environment=SCRIPT_NAME=/splipcast
+Environment=PORTAL_SECRET=CHANGEME
+Environment=ANTHROPIC_API_KEY=CHANGEME
+Environment=CLAUDE_MODEL=claude-sonnet-4-6
+Environment=BIGPICKLE_HOST=192.168.1.3:11434
+Environment=BIGPICKLE_MODEL=qwen2.5:32b
+Environment=OM42B_HOST=192.168.1.12:11434
+Environment=OM42B_MODEL=phi3:latest
+ExecStart=/usr/bin/python3 splipcast.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

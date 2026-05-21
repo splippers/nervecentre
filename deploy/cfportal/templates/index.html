@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CF Tunnel Setup — Splippers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700&display=swap" rel="stylesheet" />
+<style>
+:root{--b0:#06080c;--b1:#0d1118;--e:rgba(255,255,255,0.06);--t:#e9eef5;--m:#94a3b8;--cf:#f6821f;--go:#4ade80}
+*{box-sizing:border-box;margin:0}
+body{margin:0;min-height:100vh;font-family:"DM Sans",system-ui,sans-serif;color:var(--t);background:radial-gradient(1200px 600px at 12% -10%,rgba(246,130,31,0.08),transparent 55%),linear-gradient(165deg,var(--b0),var(--b1) 45%,#05070b);line-height:1.45;-webkit-text-size-adjust:100%}
+.wrap{max-width:820px;margin:0 auto;padding:1.2rem 1rem 2rem}
+header{margin-bottom:1rem}
+header h1{margin:0;font-size:1.5rem;font-weight:700;letter-spacing:-0.02em}
+header .sub{color:var(--m);font-size:0.85rem;margin-top:.15rem}
+.card{border-radius:18px;border:1px solid var(--e);background:rgba(14,18,26,0.72);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);padding:1.2rem;margin-bottom:1rem;box-shadow:0 1px 0 rgba(255,255,255,0.04)inset,0 18px 44px rgba(0,0,0,0.35)}
+.card h2{margin:0 0 .6rem;font-size:.95rem;font-weight:600;letter-spacing:-.01em}
+.dashed{border-style:dashed;border-color:rgba(246,130,31,0.2);background:rgba(246,130,31,0.03)}
+textarea,input[type=text]{width:100%;padding:.7rem;border-radius:10px;border:1px solid var(--e);background:rgba(0,0,0,0.35);color:var(--t);font-family:monospace;font-size:.85rem;margin:.3rem 0;resize:vertical;-webkit-appearance:none}
+textarea:focus,input:focus{outline:none;border-color:var(--cf)}
+.step{display:flex;gap:.8rem;align-items:flex-start;padding:.75rem 0;border-bottom:1px solid var(--e)}
+.step:last-child{border-bottom:none}
+.step-n{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;border:2px solid var(--e);transition:.2s}
+.step-n.done{border-color:var(--go);color:var(--go)}
+.step-n.act{border-color:var(--cf);color:var(--cf)}
+.step-b{flex:1}
+.step-b h3{margin:0 0 .15rem;font-size:.9rem;font-weight:600}
+.step-b p,.step-b .d{margin:0;color:var(--m);font-size:.82rem;line-height:1.5}
+.tag{display:inline-block;font-size:.68rem;font-weight:600;padding:.12rem .4rem;border-radius:999px;margin-top:.2rem}
+.tag.go{background:rgba(74,222,128,0.12);color:var(--go);border:1px solid rgba(74,222,128,0.25)}
+.tag.pe{background:rgba(148,163,184,0.08);color:var(--m);border:1px solid var(--e)}
+.tag.rd{background:rgba(246,130,31,0.12);color:var(--cf);border:1px solid rgba(246,130,31,0.25)}
+.row{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin:.3rem 0}
+button{padding:.45rem .9rem;border-radius:8px;border:1px solid var(--e);background:rgba(255,255,255,0.04);color:var(--t);font-family:inherit;font-size:.82rem;cursor:pointer;transition:background .15s;-webkit-tap-highlight-color:transparent}
+button:active{background:rgba(255,255,255,0.12)}
+button.pri{background:rgba(246,130,31,0.15);border-color:rgba(246,130,31,0.35);color:var(--cf);font-weight:700}
+button.go{background:rgba(74,222,128,0.12);border-color:rgba(74,222,128,0.25);color:var(--go)}
+.cb{background:rgba(0,0,0,0.4);border-radius:8px;padding:.6rem;font-family:monospace;font-size:.78rem;white-space:pre-wrap;margin:.3rem 0;overflow-x:auto;color:#e9eef5}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid var(--e);border-top-color:var(--cf);border-radius:50%;animation:s .7s linear infinite;vertical-align:middle;margin-right:4px}
+@keyframes s{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:1.5rem;right:1rem;left:1rem;padding:.8rem 1rem;border-radius:12px;background:var(--b1);border:1px solid var(--e);z-index:200;display:none;font-size:.85rem;max-width:450px;margin:0 auto}
+.toast.show{display:block}
+.toast.er{border-color:rgba(248,113,113,0.4)}
+.toast.ok{border-color:rgba(74,222,128,0.4)}
+.h{display:none}
+ol{margin:0;padding-left:1.1rem;color:var(--m);font-size:.85rem;line-height:1.7}
+ol li{margin-bottom:.2rem}
+code{background:rgba(0,0,0,0.3);padding:.08rem .25rem;border-radius:4px;font-size:.82rem}
+.pill{display:inline-flex;align-items:center;gap:.25rem;padding:.2rem .5rem;border-radius:999px;font-size:.74rem;border:1px solid var(--e)}
+.pill.go{border-color:rgba(74,222,128,0.25);color:var(--go)}
+.pill.act{border-color:rgba(246,130,31,0.35);color:var(--cf)}
+.ss{display:flex;gap:.3rem;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Cloudflare Tunnel Setup</h1>
+  <div class="sub">nc.splippers.com &middot; no external machine needed</div>
+</header>
+
+<!-- 1. TOKEN -->
+<div class="card dashed">
+  <h2>1. Paste your Cloudflare API token</h2>
+  <p style="font-size:.82rem;color:var(--m);margin-bottom:.3rem;">
+    Create at <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" style="color:var(--cf);">Cloudflare Dashboard &rarr; API Tokens</a>
+    &mdash; needs <strong>DNS:Edit</strong>, <strong>Tunnel:Edit</strong>, <strong>Zone:Read</strong>, <strong>Account:Read</strong>.
+  </p>
+  <textarea id="tok" rows="3" placeholder="Paste your CF API token here..."></textarea>
+  <div class="row">
+    <button class="pri" onclick="saveT()">Save token</button>
+    <button onclick="disc()">Verify &amp; discover</button>
+    <span id="tok-s" class="tag pe" style="margin-left:auto;">Not saved</span>
+  </div>
+  <div id="disc-r" class="h" style="margin-top:.5rem;padding:.5rem;border-radius:8px;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.15);font-size:.82rem;"></div>
+</div>
+
+<!-- 2. SUPPORT / ZONE ID -->
+<div class="card">
+  <h2>2. Support details &amp; zone ID</h2>
+  <p style="font-size:.82rem;color:var(--m);margin-bottom:.3rem;">
+    If auto-discovery above didn't find your zone, paste the <strong>zone ID</strong> from Cloudflare &rarr; Overview page here.
+    Also use this for any notes or chat transcripts.
+  </p>
+  <textarea id="sup" rows="3" placeholder="zone_id: abc123def... (copy from CF dashboard &rarr; Overview &rarr; Zone ID)"></textarea>
+  <div class="row">
+    <button onclick="saveSup()">Save</button>
+    <span id="sup-s" class="tag pe">Empty</span>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="card" id="prog-c">
+  <h2>Progress</h2>
+  <div class="ss" id="pills"></div>
+</div>
+
+<!-- STEPS -->
+<div class="card" id="steps-c">
+  <div id="steps-l"></div>
+</div>
+
+<!-- WHAT HAPPENS -->
+<div class="card">
+  <h2>Full plan (all steps)</h2>
+  <ol>
+    <li><strong style="color:var(--t);">Token</strong> &mdash; paste above, click Save then Verify. Portal auto-discovers your account and zone via CF API.</li>
+    <li><strong style="color:var(--t);">Zone ID</strong> &mdash; if discovery fails, paste zone ID from Cloudflare dashboard.</li>
+    <li><strong style="color:var(--t);">Create Tunnel</strong> &mdash; registers <code>nc-splippers</code> via CF API. Portal decodes the tunnel token JWT and writes a proper <code>credentials.json</code> + <code>config.yml</code>.</li>
+    <li><strong style="color:var(--t);">DNS Route</strong> &mdash; creates CNAME <code>nc.splippers.com</code> &rarr; tunnel via CF API, proxied (orange cloud).</li>
+    <li><strong style="color:var(--t);">systemd Service</strong> &mdash; installs and starts the daemon. Symlinks <code>/etc/cloudflared</code> to root&rsquo;s home.</li>
+    <li><strong style="color:var(--t);">Verify</strong> &mdash; portal auto-detects when the tunnel connects. Then <code>https://nc.splippers.com</code> is live.</li>
+  </ol>
+  <p style="color:var(--m);font-size:.8rem;margin-top:.6rem;border-top:1px solid var(--e);padding-top:.5rem;">
+    Everything happens server-side on EDDIE via Cloudflare API. No browser login, no cert.pem, no external machine.
+  </p>
+</div>
+
+</div><!-- .wrap -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+function T(m,t){
+  const o=document.getElementById('toast');
+  o.textContent=m;o.className='toast show '+(t||'ok');
+  setTimeout(()=>{o.className='toast'},5000)
+}
+
+function es(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+function saveT(){
+  const v=document.getElementById('tok').value.trim();
+  if(!v){T('Paste your API token first','er');return}
+  fetch('/api/upload',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'type=api_token&token='+encodeURIComponent(v)})
+  .then(r=>r.json()).then(d=>{if(d.error){T(d.error,'er');return}T('Token saved');ld()})
+  .catch(e=>T('Error: '+e.message,'er'))
+}
+
+function disc(){
+  const b=document.querySelector('#disc-r');
+  b.classList.add('h');
+  fetch('/api/discover',{method:'POST'})
+  .then(r=>r.json()).then(d=>{
+    b.classList.remove('h');
+    if(d.error){b.innerHTML='<span style="color:#f87171;">&#10007; '+es(d.error)+'</span>';T(d.error,'er')}
+    else{b.innerHTML='<span style="color:var(--go);">&#10003;</span> '+es(d.message);T(d.message);ld()}
+  })
+  .catch(e=>T('Error: '+e.message,'er'))
+}
+
+function saveSup(){
+  const v=document.getElementById('sup').value.trim();
+  fetch('/api/upload',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'type=support_details&text='+encodeURIComponent(v)})
+  .then(r=>r.json()).then(d=>{if(d.error){T(d.error,'er');return}T('Saved');document.getElementById('sup-s').textContent='Saved';document.getElementById('sup-s').className='tag go'})
+  .catch(e=>T('Error: '+e.message,'er'))
+}
+
+function render(d){
+  const e=Object.values(d);
+  // Token status badge
+  const ts=document.getElementById('tok-s');
+  if(d.token?.done){ts.textContent='Saved';ts.className='tag go'}else{ts.textContent='Not saved';ts.className='tag pe'}
+  // Pills
+  document.getElementById('pills').innerHTML=e.map((s,i)=>`<span class="pill ${s.done?'go':'act'}">${s.done?'&#10003;':(i+1)} ${es(s.title.substring(0,22))}</span>`).join('');
+  // Steps
+  let h='';
+  e.forEach((s,i)=>{
+    const c=s.done?'done':'act';let b='';
+    if(s.title==='Paste API token'){b=''}
+    else if(s.title==='Discover account & zone'){
+      b=s.done?`<p class="d">${es(s.detail)}</p><span class="tag go">&#10003; Done</span>`:'<p class="d">Click "Verify &amp; discover" after saving token.</p>'
+    }else if(s.title==='Create Tunnel'){
+      const dis=!d.discover?.done?'disabled style="opacity:0.4"':'';
+      b=s.done?`<p class="d">${es(s.detail)}</p><span class="tag go">&#10003; Created</span>`:`<p class="d">${es(s.detail)}</p><button class="pri" id="b-tun" onclick="run('tunnel')" ${dis}>Create Tunnel</button>`
+    }else if(s.title.startsWith('DNS:')){
+      const dis=!d.tunnel?.done?'disabled style="opacity:0.4"':'';
+      b=s.done?`<span class="tag go">&#10003; Configured</span>`:`<p class="d">Creates CNAME <code>nc.splippers.com &rarr; tunnel-id.cfargotunnel.com</code> (proxied).</p><button class="pri" id="b-dns" onclick="run('dns')" ${dis}>Add DNS Route</button>`
+    }else if(s.title==='Install systemd service'){
+      const dis=!d.dns?.done?'disabled style="opacity:0.4"':'';
+      b=s.done?`<span class="tag go">&#10003; Installed</span>`:`<p class="d">Installs tunnel as a systemd service that auto-starts on boot.</p><button class="go" id="b-svc" onclick="run('service')" ${dis}>Install &amp; Start Service</button>`
+    }else if(s.title==='Verify'){
+      b=s.done?`<p class="d" style="color:var(--go);font-weight:600;">&#10003; ${es(s.detail)}</p>`:`<p class="d">Auto-detects when the tunnel connects. Then <code>https://nc.splippers.com</code> is live.</p>`
+    }
+    h+=`<div class="step"><div class="step-n ${c}">${i+1}</div><div class="step-b"><h3>${es(s.title)}</h3>${b}</div></div>`
+  });
+  document.getElementById('steps-l').innerHTML = h;
+}
+
+function ld(){
+  fetch('/api/status').then(r=>r.json()).then(d=>render(d)).catch(()=>{})
+}
+
+function run(step){
+  const btn=document.querySelector(`button[id="b-${step}"]`);
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span> Working...'}
+  fetch('/api/run/'+step,{method:'POST'})
+  .then(r=>r.json()).then(d=>{if(d.error){T(d.error,'er');return}T(d.message);ld()})
+  .catch(e=>{T('Error: '+e.message,'er');ld()})
+}
+
+// Override button checks with window._sd
+function btnCheck() {
+  const stocks = document.querySelectorAll('button[id^="b-"]');
+  stocks.forEach(b => {
+    if(!b.id) return;
+    const st = b.id.replace('b-','');
+    if(st === 'tun' && window._sd && !window._sd.discover?.done) { b.disabled=true; b.style.opacity='0.4'; }
+    else if(st === 'dns' && window._sd && !window._sd.tunnel?.done) { b.disabled=true; b.style.opacity='0.4'; }
+    else if(st === 'svc' && window._sd && !window._sd.dns?.done) { b.disabled=true; b.style.opacity='0.4'; }
+  });
+}
+
+ld();
+setInterval(ld, 5000);
+</script>
+</body>
+</html>

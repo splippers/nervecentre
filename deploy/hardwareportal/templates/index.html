@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hardware Portal — Splippers</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg0: #06080c; --bg1: #0d1118; --edge: rgba(255,255,255,0.06);
+      --text: #e9eef5; --muted: #94a3b8; --accent: #38bdf8;
+      --card-radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh;
+      font-family: "DM Sans", system-ui, sans-serif;
+      color: var(--text);
+      background: radial-gradient(1200px 600px at 12% -10%, rgba(56,189,248,0.10), transparent 55%),
+                  linear-gradient(165deg, var(--bg0), var(--bg1) 45%, #05070b);
+      line-height: 1.45;
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 2rem 1.35rem 3rem; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+    header h1 { margin: 0; font-size: 1.75rem; font-weight: 700; letter-spacing: -0.03em; }
+    header .sub { color: var(--muted); font-size: 0.95rem; }
+    .status-bar { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; }
+    .status-chip { padding: 0.5rem 1rem; border-radius: 999px; border: 1px solid var(--edge); background: rgba(14,18,26,0.72); font-size: 0.85rem; color: var(--muted); }
+    .status-chip .num { color: var(--text); font-weight: 700; }
+    .card { border-radius: var(--card-radius); border: 1px solid var(--edge); background: rgba(14,18,26,0.72); backdrop-filter: blur(12px); padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 18px 44px rgba(0,0,0,0.35); }
+    .card h2 { margin: 0 0 1rem; font-size: 1.2rem; font-weight: 700; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th { text-align: left; padding: 0.6rem 0.5rem; color: var(--muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--edge); }
+    td { padding: 0.6rem 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    button, .btn { padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--edge); background: rgba(255,255,255,0.04); color: var(--text); font-family: inherit; font-size: 0.85rem; cursor: pointer; transition: background 0.15s; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; }
+    button:hover, .btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); }
+    button.primary { background: rgba(56,189,248,0.12); border-color: rgba(56,189,248,0.3); color: #38bdf8; }
+    button.primary:hover { background: rgba(56,189,248,0.2); }
+    button.danger { background: rgba(248,113,113,0.1); border-color: rgba(248,113,113,0.25); color: #f87171; }
+    button.danger:hover { background: rgba(248,113,113,0.2); }
+    .modal-overlay { display: none; position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index:100; align-items:center; justify-content:center; }
+    .modal-overlay.active { display: flex; }
+    .modal { background: var(--bg1); border: 1px solid var(--edge); border-radius: var(--card-radius); padding: 2rem; max-width: 620px; width: 90%; max-height: 85vh; overflow-y: auto; }
+    .modal h2 { margin: 0 0 1rem; }
+    .modal .close { float: right; background: none; border: none; color: var(--muted); font-size: 1.5rem; cursor: pointer; padding: 0; }
+    .modal .close:hover { color: var(--text); }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; margin-bottom: 0.3rem; color: var(--muted); font-size: 0.85rem; }
+    input, select { padding: 0.6rem 0.8rem; border-radius: 8px; border: 1px solid var(--edge); background: rgba(0,0,0,0.3); color: var(--text); font-family: inherit; font-size: 0.9rem; width: 100%; }
+    input:focus, select:focus { outline: none; border-color: rgba(56,189,248,0.5); }
+    .empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--edge); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .toast { position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem; border-radius: 12px; background: var(--bg1); border: 1px solid var(--edge); z-index: 200; display: none; max-width: 400px; }
+    .toast.show { display: block; }
+    .toast.error { border-color: rgba(248,113,113,0.4); }
+    .toast.success { border-color: rgba(56,189,248,0.4); }
+    .node-card { border: 1px solid var(--edge); border-radius: 12px; padding: 1rem; margin-bottom: 0.75rem; background: rgba(0,0,0,0.15); }
+    .node-card.bottleneck { border-color: rgba(248,113,113,0.35); background: rgba(248,113,113,0.05); }
+    .gauge { display: inline-block; width: 80px; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.06); vertical-align: middle; margin-right: 0.5rem; }
+    .gauge-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+    .gauge-low .gauge-fill { background: #4ade80; }
+    .gauge-mid .gauge-fill { background: #fb923c; }
+    .gauge-high .gauge-fill { background: #f87171; }
+    .model-tag { display: inline-block; padding: 0.15rem 0.4rem; margin: 0.1rem; border-radius: 999px; background: rgba(56,189,248,0.08); border: 1px solid rgba(56,189,248,0.15); font-size: 0.75rem; }
+    .tab-bar { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+    .tab-bar button { border-radius: 999px; padding: 0.5rem 1.2rem; }
+    .tab-bar button.active { background: rgba(56,189,248,0.15); border-color: rgba(56,189,248,0.35); color: #38bdf8; }
+    .hidden { display: none; }
+    .suggestion-card { border: 1px solid rgba(248,113,113,0.2); border-radius: 12px; padding: 1rem; margin-bottom: 0.5rem; background: rgba(248,113,113,0.04); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Hardware Resources</h1>
+        <div class="sub">Fleet inventory, load monitoring, bottleneck detection</div>
+      </div>
+      <div class="actions">
+        <button onclick="loadNodes()">Refresh Load</button>
+        <button onclick="runRebalance()">Analyse Bottlenecks</button>
+      </div>
+    </header>
+
+    <div class="status-bar">
+      <div class="status-chip">Nodes: <span class="num" id="node-count">0</span></div>
+      <div class="status-chip">Total RAM: <span class="num" id="total-ram">0</span> GB</div>
+      <div class="status-chip">Bottlenecks: <span class="num" id="bottleneck-count">0</span></div>
+    </div>
+
+    <div class="tab-bar">
+      <button class="active" onclick="switchTab('nodes', this)">Nodes</button>
+      <button onclick="switchTab('allocations', this)">Allocations</button>
+      <button onclick="switchTab('bottlenecks', this)">Bottlenecks</button>
+    </div>
+
+    <div id="tab-nodes">
+      <div class="card" id="nodes-container">
+        <h2>Fleet Nodes</h2>
+        <div style="text-align:center;padding:2rem;"><span class="spinner"></span> Loading nodes...</div>
+      </div>
+    </div>
+
+    <div id="tab-allocations" class="hidden">
+      <div class="card" id="allocations-container">
+        <h2>Workload Allocations</h2>
+        <div style="text-align:center;padding:2rem;"><span class="spinner"></span> Loading allocations...</div>
+      </div>
+    </div>
+
+    <div id="tab-bottlenecks" class="hidden">
+      <div class="card" id="bottlenecks-container">
+        <h2>Bottleneck Analysis</h2>
+        <div style="text-align:center;padding:2rem;"><span class="spinner"></span> Analysing...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create allocation modal -->
+  <div class="modal-overlay" id="alloc-modal">
+    <div class="modal">
+      <button class="close" onclick="closeModal('alloc-modal')">&times;</button>
+      <h2>New Allocation</h2>
+      <div class="form-group">
+        <label>Project</label>
+        <input type="text" id="alloc-project" placeholder="e.g. alzhelper" />
+      </div>
+      <div class="form-group">
+        <label>Node</label>
+        <select id="alloc-node"></select>
+      </div>
+      <div class="form-group">
+        <label>Model</label>
+        <input type="text" id="alloc-model" placeholder="e.g. phi3:latest" />
+      </div>
+      <div class="form-group">
+        <label>Workload Type</label>
+        <select id="alloc-workload">
+          <option value="inference">Inference</option>
+          <option value="training">Training</option>
+          <option value="embedding">Embedding</option>
+          <option value="orchestration">Orchestration</option>
+        </select>
+      </div>
+      <button class="primary" onclick="createAllocation()">Create Allocation</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    let nodes = [];
+    let allocations = [];
+
+    function toast(msg, type) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.className = 'toast show ' + (type||'success');
+      setTimeout(() => { t.className = 'toast'; }, 3000);
+    }
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+    function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+    function switchTab(tab, btn) {
+      document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-nodes').classList.toggle('hidden', tab !== 'nodes');
+      document.getElementById('tab-allocations').classList.toggle('hidden', tab !== 'allocations');
+      document.getElementById('tab-bottlenecks').classList.toggle('hidden', tab !== 'bottlenecks');
+    }
+
+    function gaugeBar(pct) {
+      const cls = pct < 50 ? 'gauge-low' : (pct < 75 ? 'gauge-mid' : 'gauge-high');
+      return `<span class="gauge ${cls}"><span class="gauge-fill" style="width:${Math.min(pct, 100)}%"></span></span>${pct}%`;
+    }
+
+    function loadNodes() {
+      fetch('/api/nodes')
+        .then(r => r.json())
+        .then(data => {
+          nodes = data;
+          document.getElementById('node-count').textContent = nodes.length;
+          const totalRam = nodes.reduce((s, n) => s + n.ram_gb, 0);
+          document.getElementById('total-ram').textContent = totalRam;
+          renderNodes();
+        })
+        .catch(e => {
+          document.getElementById('nodes-container').innerHTML = '<h2>Fleet Nodes</h2><div class="empty-state" style="color:#f87171;">Error: ' + e.message + '</div>';
+        });
+    }
+
+    function renderNodes() {
+      const container = document.getElementById('nodes-container');
+      if (!nodes.length) {
+        container.innerHTML = '<h2>Fleet Nodes</h2><div class="empty-state">No nodes configured.</div>';
+        return;
+      }
+      let html = '<h2>Fleet Nodes</h2>';
+      for (const n of nodes) {
+        const load = n.load || {};
+        const isBottleneck = n.bottleneck_score >= 25;
+        const models = (n.models || []).map(m => `<span class="model-tag">${escapeHtml(m)}</span>`).join('');
+        html += `<div class="node-card ${isBottleneck ? 'bottleneck' : ''}">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:0.5rem;">
+            <div>
+              <strong style="font-size:1.1rem;">${escapeHtml(n.name)}</strong>
+              ${n.has_gpu ? '🎮' : ''}
+              <span style="color:var(--muted);font-size:0.85rem;">${escapeHtml(n.ip)}</span>
+            </div>
+            <div class="actions">
+              <button onclick="openAlloc('${escapeHtml(n.name)}')">+ Allocate</button>
+            </div>
+          </div>
+          <div style="margin-top:0.3rem;font-size:0.85rem;color:var(--muted);">
+            RAM: <strong>${n.ram_gb} GB</strong> · Role: ${escapeHtml(n.role || '—')}
+            ${n.bottleneck_score >= 25 ? ' · <span style="color:#f87171;">⚠ Bottleneck score: ' + n.bottleneck_score + '</span>' : ''}
+          </div>
+          ${load.cpu_used_pct !== undefined ? `<div style="margin-top:0.3rem;font-size:0.85rem;">CPU: ${gaugeBar(load.cpu_used_pct)} MEM: ${gaugeBar(load.mem_used_pct)} Disk: ${gaugeBar(parseFloat(load.disk_used_pct || 0))} Load: ${load.load_1m || '?'}</div>` : ''}
+          ${load.note ? `<div style="color:var(--muted);font-size:0.8rem;margin-top:0.2rem;">${escapeHtml(load.note)}</div>` : ''}
+          ${models ? '<div style="margin-top:0.3rem;">' + models + '</div>' : ''}
+        </div>`;
+      }
+      container.innerHTML = html;
+    }
+
+    function loadAllocations() {
+      fetch('/api/allocations')
+        .then(r => r.json())
+        .then(data => {
+          allocations = data;
+          renderAllocations();
+        });
+    }
+
+    function renderAllocations() {
+      const container = document.getElementById('allocations-container');
+      if (!allocations.length) {
+        container.innerHTML = '<h2>Workload Allocations</h2><div class="empty-state">No active allocations. Allocate a workload to a node above.</div>';
+        return;
+      }
+      let html = '<h2>Workload Allocations</h2><table><thead><tr><th>Project</th><th>Node</th><th>Model</th><th>Workload</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
+      for (const a of allocations) {
+        html += `<tr>
+          <td><strong>${escapeHtml(a.project)}</strong></td>
+          <td>${escapeHtml(a.node)}</td>
+          <td><code>${escapeHtml(a.model || '—')}</code></td>
+          <td>${escapeHtml(a.workload)}</td>
+          <td>${escapeHtml(a.status)}</td>
+          <td class="actions">
+            <button class="danger" onclick="deleteAlloc('${a.id}')">Remove</button>
+          </td>
+        </tr>`;
+      }
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+
+    function openAlloc(node) {
+      const sel = document.getElementById('alloc-node');
+      sel.innerHTML = nodes.map(n => `<option value="${escapeHtml(n.name)}" ${n.name === node ? 'selected' : ''}>${escapeHtml(n.name)}</option>`).join('');
+      document.getElementById('alloc-project').value = '';
+      document.getElementById('alloc-model').value = '';
+      document.getElementById('alloc-workload').value = 'inference';
+      openModal('alloc-modal');
+    }
+
+    function createAllocation() {
+      const data = {
+        project: document.getElementById('alloc-project').value.trim(),
+        node: document.getElementById('alloc-node').value,
+        model: document.getElementById('alloc-model').value.trim(),
+        workload: document.getElementById('alloc-workload').value,
+      };
+      if (!data.project) { toast('Enter a project name', 'error'); return; }
+      fetch('/api/allocations', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) })
+        .then(r => r.json())
+        .then(d => {
+          if (d.error) { toast(d.error, 'error'); return; }
+          toast('Allocation created');
+          closeModal('alloc-modal');
+          loadAllocations();
+        })
+        .catch(e => toast('Error: ' + e.message, 'error'));
+    }
+
+    function deleteAlloc(id) {
+      if (!confirm('Remove this allocation?')) return;
+      fetch('/api/allocations/' + id, { method: 'DELETE' })
+        .then(r => r.json())
+        .then(() => { toast('Allocation removed'); loadAllocations(); })
+        .catch(e => toast('Error: ' + e.message, 'error'));
+    }
+
+    function runRebalance() {
+      switchTab('bottlenecks', document.querySelector('.tab-bar button:nth-child(3)'));
+      document.getElementById('bottlenecks-container').innerHTML = '<h2>Bottleneck Analysis</h2><div style="text-align:center;padding:2rem;"><span class="spinner"></span> Analysing...</div>';
+      fetch('/api/rebalance')
+        .then(r => r.json())
+        .then(data => {
+          document.getElementById('bottleneck-count').textContent = data.bottlenecks || 0;
+          let html = '<h2>Bottleneck Analysis</h2>';
+          html += `<div style="margin-bottom:1rem;font-size:0.9rem;color:var(--muted);">${data.nodes} nodes · ${data.active_allocations} active allocations · ${data.bottlenecks} bottlenecks detected</div>`;
+          if (!data.suggestions || !data.suggestions.length) {
+            html += '<div class="empty-state">No bottlenecks detected. Fleet load looks balanced.</div>';
+          } else {
+            for (const s of data.suggestions) {
+              html += `<div class="suggestion-card">
+                <strong style="color:#f87171;">⚠ ${escapeHtml(s.bottlenecked_node)}</strong> (score: ${s.bottleneck_score})<br/>
+                ${escapeHtml(s.reason)}<br/>
+                <span style="color:var(--muted);font-size:0.85rem;">${s.active_allocations} active allocations</span>
+                ${s.suggested_targets && s.suggested_targets.length ? '<div style="margin-top:0.3rem;font-size:0.85rem;">Suggested targets: ' + s.suggested_targets.map(t => `<strong>${escapeHtml(t)}</strong>`).join(', ') + '</div>' : ''}
+              </div>`;
+            }
+          }
+          document.getElementById('bottlenecks-container').innerHTML = html;
+        })
+        .catch(e => {
+          document.getElementById('bottlenecks-container').innerHTML = '<h2>Bottleneck Analysis</h2><div class="empty-state" style="color:#f87171;">Error: ' + e.message + '</div>';
+        });
+    }
+
+    loadNodes();
+    loadAllocations();
+    setInterval(loadNodes, 30000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fleet Dynamics — Splippers</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg0: #06080c; --bg1: #0d1118; --edge: rgba(255,255,255,0.06);
+      --text: #e9eef5; --muted: #94a3b8; --accent: #f472b6;
+      --card-radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh;
+      font-family: "DM Sans", system-ui, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 12% -10%, rgba(244,114,182,0.10), transparent 55%),
+        radial-gradient(900px 500px at 88% 0%, rgba(56,189,248,0.08), transparent 50%),
+        linear-gradient(165deg, var(--bg0), var(--bg1) 45%, #05070b);
+      line-height: 1.45;
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 2rem 1.35rem 3rem; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+    header h1 { margin: 0; font-size: 1.75rem; font-weight: 700; letter-spacing: -0.03em; }
+    header .sub { color: var(--muted); font-size: 0.95rem; }
+    .status-bar { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; }
+    .status-chip { padding: 0.5rem 1rem; border-radius: 999px; border: 1px solid var(--edge); background: rgba(14,18,26,0.72); font-size: 0.85rem; color: var(--muted); }
+    .status-chip .num { color: var(--text); font-weight: 700; }
+    .card { border-radius: var(--card-radius); border: 1px solid var(--edge); background: rgba(14,18,26,0.72); backdrop-filter: blur(12px); padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 18px 44px rgba(0,0,0,0.35); }
+    .card h2 { margin: 0 0 1rem; font-size: 1.2rem; font-weight: 700; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th { text-align: left; padding: 0.6rem 0.5rem; color: var(--muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--edge); }
+    td { padding: 0.6rem 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    button, .btn { padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--edge); background: rgba(255,255,255,0.04); color: var(--text); font-family: inherit; font-size: 0.85rem; cursor: pointer; transition: all 0.15s; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; }
+    button:hover, .btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); }
+    button.primary { background: rgba(244,114,182,0.12); border-color: rgba(244,114,182,0.3); color: #f472b6; }
+    button.primary:hover { background: rgba(244,114,182,0.2); }
+    button.secondary { background: rgba(56,189,248,0.12); border-color: rgba(56,189,248,0.3); color: #38bdf8; }
+    button.secondary:hover { background: rgba(56,189,248,0.2); }
+    button.danger { background: rgba(248,113,113,0.1); border-color: rgba(248,113,113,0.25); color: #f87171; }
+    button.danger:hover { background: rgba(248,113,113,0.2); }
+    button.gold { background: rgba(251,191,36,0.12); border-color: rgba(251,191,36,0.3); color: #fbbf24; font-weight: 700; font-size: 1rem; padding: 0.75rem 1.5rem; }
+    button.gold:hover { background: rgba(251,191,36,0.2); }
+    input, select, textarea { padding: 0.6rem 0.8rem; border-radius: 8px; border: 1px solid var(--edge); background: rgba(0,0,0,0.3); color: var(--text); font-family: inherit; font-size: 0.9rem; width: 100%; }
+    input:focus, select:focus { outline: none; border-color: rgba(244,114,182,0.5); }
+    .modal-overlay { display: none; position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index:100; align-items:center; justify-content:center; }
+    .modal-overlay.active { display: flex; }
+    .modal { background: var(--bg1); border: 1px solid var(--edge); border-radius: var(--card-radius); padding: 2rem; max-width: 640px; width: 90%; max-height: 85vh; overflow-y: auto; }
+    .modal h2 { margin: 0 0 1rem; }
+    .modal .close { float: right; background: none; border: none; color: var(--muted); font-size: 1.5rem; cursor: pointer; padding: 0; }
+    .modal .close:hover { color: var(--text); }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; margin-bottom: 0.3rem; color: var(--muted); font-size: 0.85rem; }
+    .empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--edge); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .toast { position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem; border-radius: 12px; background: var(--bg1); border: 1px solid var(--edge); z-index: 200; display: none; max-width: 450px; }
+    .toast.show { display: block; }
+    .toast.error { border-color: rgba(248,113,113,0.4); }
+    .toast.success { border-color: rgba(244,114,182,0.4); }
+    .node-card { border: 1px solid var(--edge); border-radius: 12px; padding: 1rem; margin-bottom: 0.75rem; background: rgba(0,0,0,0.15); transition: border-color 0.3s; }
+    .node-card.healthy { border-left: 3px solid #4ade80; }
+    .node-card.strained { border-left: 3px solid #fb923c; }
+    .node-card.critical { border-left: 3px solid #f87171; background: rgba(248,113,113,0.04); }
+    .node-card.offline { border-left: 3px solid #64748b; opacity: 0.6; }
+    .model-tag { display: inline-block; padding: 0.15rem 0.4rem; margin: 0.1rem; border-radius: 999px; background: rgba(244,114,182,0.08); border: 1px solid rgba(244,114,182,0.15); font-size: 0.75rem; }
+    .tab-bar { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .tab-bar button { border-radius: 999px; padding: 0.5rem 1.2rem; }
+    .tab-bar button.active { background: rgba(244,114,182,0.15); border-color: rgba(244,114,182,0.35); color: #f472b6; }
+    .hidden { display: none; }
+    .diagnosis-box { background: rgba(0,0,0,0.3); border-radius: 12px; padding: 1.25rem; margin: 0.75rem 0; border: 1px solid var(--edge); font-size: 0.95rem; line-height: 1.6; }
+    .vital-sign { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.7rem; border-radius: 999px; background: rgba(0,0,0,0.3); border: 1px solid var(--edge); font-size: 0.8rem; margin: 0.15rem; }
+    .ceremony-item { padding: 0.75rem 1rem; margin-bottom: 0.5rem; border-radius: 10px; background: rgba(251,191,36,0.06); border: 1px solid rgba(251,191,36,0.15); font-size: 0.9rem; animation: fadeIn 0.5s ease-out; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes pulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.05); } }
+    .pulse { animation: pulse 1.5s ease-in-out infinite; }
+    .health-log-item { padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.85rem; }
+    .health-log-item .time { color: var(--muted); font-size: 0.75rem; }
+    .confetti-container { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:999; overflow:hidden; }
+    .confetti { position:absolute; width:10px; height:10px; border-radius:2px; animation: confetti-fall linear forwards; }
+    @keyframes confetti-fall { 0% { transform: translateY(-10px) rotate(0deg); opacity:1; } 100% { transform: translateY(100vh) rotate(720deg); opacity:0; } }
+    .scan-results { max-height: 400px; overflow-y: auto; }
+    .gpu-badge { display: inline-block; padding: 0.15rem 0.4rem; border-radius: 999px; background: rgba(244,114,182,0.12); border: 1px solid rgba(244,114,182,0.25); font-size: 0.7rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Fleet Dynamics</h1>
+        <div class="sub">🩺 Live fleet health · Cough tests · Node invitations · Full physicals</div>
+      </div>
+      <div class="actions">
+        <button class="secondary" onclick="fullFleetScan()">🔬 Full Fleet Scan</button>
+        <button class="gold pulse" onclick="openInviteLAVE()">🎊 Invite LAVE</button>
+      </div>
+    </header>
+
+    <div class="status-bar" id="status-bar">
+      <div class="status-chip">Nodes: <span class="num" id="node-count">—</span></div>
+      <div class="status-chip">Total RAM: <span class="num" id="total-ram">—</span> GB</div>
+      <div class="status-chip">Total CPUs: <span class="num" id="cpu-total">—</span> cores</div>
+      <div class="status-chip">GPUs: <span class="num" id="gpu-count">—</span></div>
+      <div class="status-chip">🟢 <span class="num" id="alive-count">—</span> healthy</div>
+      <div class="status-chip">🟡 <span class="num" id="strained-count">—</span> strained</div>
+    </div>
+
+    <div class="tab-bar">
+      <button class="active" onclick="switchTab('roster', this)">Fleet Roster</button>
+      <button onclick="switchTab('discovery', this)">📡 LAN Discovery</button>
+      <button onclick="switchTab('healthlog', this)">Health Log</button>
+      <button onclick="switchTab('traps', this)">📡 Trap Network</button>
+      <button onclick="switchTab('invites', this)">Invitations</button>
+    </div>
+
+    <!-- Fleet Roster -->
+    <div id="tab-roster">
+      <div class="card" id="fleet-container">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem;">
+          <h2 style="margin:0;">Fleet Roster</h2>
+          <button onclick="loadFleet()">🔄 Refresh Vitals</button>
+        </div>
+        <div style="text-align:center;padding:2rem;"><span class="spinner"></span> Loading fleet status...</div>
+      </div>
+    </div>
+
+    <!-- LAN Discovery -->
+    <div id="tab-discovery" class="hidden">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem;">
+          <h2 style="margin:0;">📡 LAN Discovery</h2>
+          <button class="secondary" onclick="discoverLAN()">🔍 Scan LAN</button>
+        </div>
+        <div style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem;">
+          Scans the local subnet for unregistered hosts with open services. Found candidates can be invited to join the fleet.
+        </div>
+        <div id="discovery-results">
+          <div class="empty-state">Click "Scan LAN" to discover unregistered hosts.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Health Log -->
+    <div id="tab-healthlog" class="hidden">
+      <div class="card" id="healthlog-container">
+        <h2>Examination Log</h2>
+        <div style="text-align:center;padding:2rem;"><span class="spinner"></span> Loading log...</div>
+      </div>
+    </div>
+
+    <!-- Trap Network -->
+    <div id="tab-traps" class="hidden">
+      <div class="card" id="traps-container">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem;">
+          <h2 style="margin:0;">📡 ALBATROSS Trap Network</h2>
+          <button class="secondary" onclick="loadTrapHealth()">🔄 Refresh</button>
+        </div>
+        <div style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem;">
+          Real-time ALBATROSS trap receipts from all fleet nodes. Each entry shows when a trap was received and its origin.
+        </div>
+        <div style="text-align:center;padding:2rem;"><span class="spinner"></span> Loading trap network...</div>
+      </div>
+    </div>
+
+    <!-- Invitations -->
+    <div id="tab-invites" class="hidden">
+      <div class="card" id="invites-container">
+        <h2>Ceremonial Invitations</h2>
+        <div style="text-align:center;padding:2rem;"><span class="spinner"></span> Loading...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cough Result Modal -->
+  <div class="modal-overlay" id="cough-modal">
+    <div class="modal">
+      <button class="close" onclick="closeModal('cough-modal')">&times;</button>
+      <h2 id="cough-title">Cough Test Results</h2>
+      <div id="cough-body"></div>
+      <div style="margin-top:1rem;"><button onclick="closeModal('cough-modal')">Close</button></div>
+    </div>
+  </div>
+
+  <!-- Scan Results Modal -->
+  <div class="modal-overlay" id="scan-modal">
+    <div class="modal">
+      <button class="close" onclick="closeModal('scan-modal')">&times;</button>
+      <h2>🔬 Full Fleet Scan</h2>
+      <div id="scan-body"><div class="empty-state"><span class="spinner"></span> Scanning all nodes...</div></div>
+      <div style="margin-top:1rem;"><button onclick="closeModal('scan-modal')">Close</button></div>
+    </div>
+  </div>
+
+  <!-- Invite LAVE Modal -->
+  <div class="modal-overlay" id="invite-modal">
+    <div class="modal">
+      <button class="close" onclick="closeModal('invite-modal')">&times;</button>
+      <h2>🎊 Invite a New Node to the Fleet</h2>
+      <div id="invite-form">
+        <div class="form-group">
+          <label>Node Name</label>
+          <input type="text" id="invite-name" placeholder="e.g. LAVE" value="LAVE" />
+        </div>
+        <div class="form-group">
+          <label>IP Address (optional)</label>
+          <input type="text" id="invite-ip" placeholder="e.g. 192.168.1.50" />
+        </div>
+          <div class="form-group">
+            <label>RAM (GB) — if known</label>
+            <input type="number" id="invite-ram" value="" placeholder="Unknown" />
+          </div>
+          <div class="form-group">
+            <label>Has GPU?</label>
+          <select id="invite-gpu"><option value="true">Yes 🎮</option><option value="false">No</option></select>
+        </div>
+        <div class="form-group">
+          <label>Models (comma-separated)</label>
+          <input type="text" id="invite-models" placeholder="e.g. Llama-3.2-3B, Mistral-7B" />
+        </div>
+        <div class="form-group">
+          <label>Role / Description</label>
+          <input type="text" id="invite-role" placeholder="e.g. Folding@Home + Ollama node" value="Generous donor — 16GB DDR3 + GPU" />
+        </div>
+        <button class="gold" onclick="inviteNode()" style="width:100%;justify-content:center;">🎊 Induct into Fleet</button>
+      </div>
+      <div id="invite-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Confetti container -->
+  <div class="confetti-container" id="confetti-container"></div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    let fleetData = [];
+    let healthLog = [];
+
+    function toast(msg, type) {
+      const t = document.getElementById('toast');
+      t.innerHTML = msg; t.className = 'toast show ' + (type||'success');
+      setTimeout(() => { t.className = 'toast'; }, 4000);
+    }
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+    function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+    function switchTab(tab, btn) {
+      document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-roster').classList.toggle('hidden', tab !== 'roster');
+      document.getElementById('tab-discovery').classList.toggle('hidden', tab !== 'discovery');
+      document.getElementById('tab-healthlog').classList.toggle('hidden', tab !== 'healthlog');
+      document.getElementById('tab-traps').classList.toggle('hidden', tab !== 'traps');
+      document.getElementById('tab-invites').classList.toggle('hidden', tab !== 'invites');
+      if (tab === 'healthlog') loadHealthLog();
+      if (tab === 'traps') loadTrapHealth();
+      if (tab === 'invites') loadInvites();
+    }
+
+    function statusClass(verdict) {
+      return verdict === 'healthy' ? 'healthy' : verdict === 'strained' ? 'strained' : verdict === 'critical' ? 'critical' : 'offline';
+    }
+
+    function statusIcon(verdict) {
+      return verdict === 'healthy' ? '🟢' : verdict === 'strained' ? '🟡' : verdict === 'critical' ? '🔴' : '⚫';
+    }
+
+    function fireConfetti(count = 60) {
+      const container = document.getElementById('confetti-container');
+      const colors = ['#f472b6','#4ade80','#38bdf8','#fbbf24','#c084fc','#fb923c','#f87171'];
+      for (let i = 0; i < count; i++) {
+        const el = document.createElement('div');
+        el.className = 'confetti';
+        el.style.left = Math.random() * 100 + '%';
+        el.style.background = colors[Math.floor(Math.random() * colors.length)];
+        el.style.width = (Math.random() * 6 + 4) + 'px';
+        el.style.height = (Math.random() * 6 + 4) + 'px';
+        el.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
+        el.style.animationDelay = (Math.random() * 1.5) + 's';
+        container.appendChild(el);
+        setTimeout(() => el.remove(), 4000);
+      }
+    }
+
+    function loadFleet() {
+      document.getElementById('fleet-container').querySelector('div:last-child').innerHTML = '<div style="text-align:center;padding:2rem;"><span class="spinner"></span> Loading fleet status...</div>';
+      fetch('/api/fleet')
+        .then(r => r.json())
+        .then(data => {
+          fleetData = data.fleet;
+          renderFleet(data);
+        })
+        .catch(e => {
+          document.getElementById('fleet-container').innerHTML = '<h2>Fleet Roster</h2><div class="empty-state" style="color:#f87171;">Failed to load fleet: ' + e.message + '</div>';
+        });
+    }
+
+    function renderFleet(data) {
+      const fleet = data.fleet;
+      const s = data.summary;
+      const totalCpu = fleet.reduce((a, n) => a + (n.cpu_count || 0), 0);
+      const totalGpu = fleet.reduce((a, n) => a + (n.has_gpu ? 1 : 0), 0);
+      document.getElementById('node-count').textContent = s.node_count;
+      document.getElementById('total-ram').textContent = s.total_ram_known || 0;
+      document.getElementById('cpu-total').textContent = totalCpu;
+      document.getElementById('gpu-count').textContent = totalGpu;
+      document.getElementById('alive-count').textContent = s.alive;
+      document.getElementById('strained-count').textContent = s.strained;
+
+      const container = document.getElementById('fleet-container');
+      if (!fleet.length) {
+        container.innerHTML = '<div class="empty-state">No nodes in the fleet.</div>';
+        return;
+      }
+      let html = `<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem;">
+        <h2 style="margin:0;">Fleet Roster</h2>
+        <button onclick="loadFleet()">🔄 Refresh Vitals</button>
+      </div>`;
+      for (const n of fleet) {
+        const v = n.vitals || {};
+        const verdict = v.status || 'assumed-healthy';
+        const models = (n.models || []).map(m => `<span class="model-tag">${escapeHtml(m)}</span>`).join('');
+        const temp = v.temperature || '—';
+        const bp = v.blood_pressure || '—';
+        const ramDisplay = n.ram_gb ? `${n.ram_gb} GB RAM` : '';
+        const specParts = [];
+        if (ramDisplay) specParts.push(ramDisplay);
+        if (n.cpu_count) specParts.push(`${n.cpu_count} cores`);
+        if (n.has_gpu) specParts.push(`<span class="gpu-badge">🎮 GPU</span>`);
+        if (n.swap_gb) specParts.push(`${n.swap_gb} GB swap`);
+        const specLine = specParts.join(' · ');
+        html += `<div class="node-card ${statusClass(verdict)}">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:0.5rem;">
+            <div>
+              <strong style="font-size:1.15rem;">${statusIcon(verdict)} ${escapeHtml(n.name)}</strong>
+              <span style="color:var(--muted);font-size:0.85rem;">${escapeHtml(n.ip || 'lan')}</span>
+            </div>
+            <div class="actions">
+              <button onclick="coughNode('${escapeHtml(n.name)}')">🫁 Cough</button>
+            </div>
+          </div>
+          <div style="margin-top:0.3rem;font-size:0.85rem;color:var(--muted);">
+            ${specLine}${specLine ? ' · ' : ''}${escapeHtml(n.role || '—')} · Joined ${n.joined || '?'}
+            ${n.status === 'active' ? '🟢 active' : '⚫ ' + escapeHtml(n.status)}
+          </div>
+          ${n.os ? `<div style="margin-top:0.1rem;font-size:0.8rem;color:var(--muted);">${escapeHtml(n.os)}</div>` : ''}
+          ${n.gpu_model ? `<div style="margin-top:0.1rem;font-size:0.8rem;color:var(--muted);">🎮 ${escapeHtml(n.gpu_model)}</div>` : ''}
+          ${n.storage ? `<div style="margin-top:0.1rem;font-size:0.8rem;color:var(--muted);">💾 ${escapeHtml(n.storage)}</div>` : ''}
+          <div style="margin-top:0.3rem;font-size:0.85rem;">
+            ${v.cpu !== undefined ? `<span class="vital-sign">🌡️ ${temp} (${v.cpu}% CPU)</span>` : ''}
+            ${v.mem !== undefined ? `<span class="vital-sign">💓 ${bp} (${v.mem}% MEM)</span>` : ''}
+            ${v.disk !== undefined ? `<span class="vital-sign">💾 ${v.disk}% disk</span>` : ''}
+            ${v.load_1m !== undefined ? `<span class="vital-sign">📊 load ${v.load_1m}</span>` : ''}
+            ${v.uptime !== undefined ? `<span class="vital-sign">⏱️ up ${v.uptime}</span>` : ''}
+            ${v.reachable !== undefined ? `<span class="vital-sign">📡 ${v.reachable ? 'reachable' : 'unreachable'} ${v.latency_ms ? '(' + v.latency_ms + 'ms)' : ''}</span>` : ''}
+            ${v.note ? `<span class="vital-sign" style="color:var(--muted);">${escapeHtml(v.note)}</span>` : ''}
+          </div>
+          ${models ? '<div style="margin-top:0.3rem;">' + models + '</div>' : ''}
+        </div>`;
+      }
+      container.innerHTML = html;
+    }
+
+    function coughNode(name) {
+      document.getElementById('cough-title').textContent = '🫁 Cough Test: ' + name;
+      document.getElementById('cough-body').innerHTML = '<div class="empty-state"><span class="spinner"></span> Auscultating ' + name + '...</div>';
+      openModal('cough-modal');
+
+      fetch('/api/fleet/cough', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({name: name}),
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.error) { document.getElementById('cough-body').innerHTML = '<div class="empty-state" style="color:#f87171;">' + escapeHtml(data.error) + '</div>'; return; }
+          const v = data.vitals || {};
+          let vitalsHtml = '';
+          if (v.cpu !== undefined) vitalsHtml += `<span class="vital-sign">🌡️ ${v.temperature || '—'}</span>`;
+          if (v.mem !== undefined) vitalsHtml += `<span class="vital-sign">💓 ${v.blood_pressure || '—'}</span>`;
+          if (v.disk !== undefined) vitalsHtml += `<span class="vital-sign">💾 ${v.disk}% disk</span>`;
+          const verdictIcon = data.verdict === 'healthy' ? '🟢' : data.verdict === 'strained' ? '🟡' : data.verdict === 'critical' ? '🔴' : '⚫';
+          document.getElementById('cough-body').innerHTML = `
+            <div style="margin-bottom:0.5rem;">${verdictIcon} Verdict: <strong>${data.verdict.toUpperCase()}</strong></div>
+            ${vitalsHtml ? '<div style="margin-bottom:0.5rem;">' + vitalsHtml + '</div>' : ''}
+            <div class="diagnosis-box">${data.diagnosis}</div>
+          `;
+          loadFleet();
+        })
+        .catch(e => {
+          document.getElementById('cough-body').innerHTML = '<div class="empty-state" style="color:#f87171;">Error: ' + e.message + '</div>';
+        });
+    }
+
+    function fullFleetScan() {
+      openModal('scan-modal');
+      document.getElementById('scan-body').innerHTML = '<div class="empty-state"><span class="spinner"></span> Running full physical on all nodes...</div>';
+
+      fetch('/api/fleet/scan', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+          let html = `<div style="margin-bottom:0.5rem;color:var(--muted);">Scan ID: ${data.scan_id} · ${new Date(data.timestamp).toLocaleString()}</div>`;
+          html += '<div class="scan-results">';
+          for (const r of data.results) {
+            const icon = r.verdict === 'healthy' ? '🟢' : r.verdict === 'strained' ? '🟡' : r.verdict === 'critical' ? '🔴' : '⚫';
+            html += `<div class="diagnosis-box" style="margin-bottom:0.5rem;">
+              <strong>${icon} ${escapeHtml(r.node)}</strong> — ${r.verdict.toUpperCase()}<br/>
+              ${r.diagnosis}
+            </div>`;
+          }
+          html += '</div>';
+          document.getElementById('scan-body').innerHTML = html;
+          loadFleet();
+        })
+        .catch(e => {
+          document.getElementById('scan-body').innerHTML = '<div class="empty-state" style="color:#f87171;">Error: ' + e.message + '</div>';
+        });
+    }
+
+    function openInviteLAVE() {
+      document.getElementById('invite-name').value = 'LAVE';
+      document.getElementById('invite-ip').value = '';
+      document.getElementById('invite-ram').value = '16';
+      document.getElementById('invite-gpu').value = 'true';
+      document.getElementById('invite-models').value = 'TBD — whatever runs on 16GB DDR3';
+      document.getElementById('invite-role').value = 'Generous donor — 16GB DDR3 + GPU';
+      document.getElementById('invite-form').style.display = 'block';
+      document.getElementById('invite-result').style.display = 'none';
+      openModal('invite-modal');
+    }
+
+    function inviteNode() {
+      const name = document.getElementById('invite-name').value.trim().toUpperCase();
+      if (!name) { toast('Enter a node name', 'error'); return; }
+
+      const data = {
+        name: name,
+        ip: document.getElementById('invite-ip').value.trim(),
+        ram_gb: parseInt(document.getElementById('invite-ram').value) || 8,
+        has_gpu: document.getElementById('invite-gpu').value === 'true',
+        models: document.getElementById('invite-models').value.split(',').map(s => s.trim()).filter(Boolean),
+        role: document.getElementById('invite-role').value.trim(),
+        ceremony: true,
+      };
+
+      document.getElementById('invite-form').style.display = 'none';
+      document.getElementById('invite-result').style.display = 'block';
+      document.getElementById('invite-result').innerHTML = '<div class="empty-state"><span class="spinner"></span> Preparing the ceremony...</div>';
+
+      fetch('/api/fleet/invite', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(data),
+      })
+        .then(r => r.json())
+        .then(d => {
+          if (d.error) {
+            document.getElementById('invite-form').style.display = 'block';
+            document.getElementById('invite-result').style.display = 'none';
+            toast(d.error, 'error');
+            return;
+          }
+          let html = '<div style="text-align:center;margin-bottom:1rem;">';
+          html += '<div style="font-size:3rem;margin-bottom:0.5rem;">🎊</div>';
+          html += '<h2 style="color:#fbbf24;font-size:1.5rem;">' + escapeHtml(d.node.name) + ' has joined the fleet!</h2>';
+          html += '<div style="color:var(--muted);">' + escapeHtml(d.message) + '</div>';
+          html += '</div>';
+          if (d.ceremony && d.ceremony.length) {
+            html += '<div style="margin-top:1rem;">';
+            for (const line of d.ceremony) {
+              html += `<div class="ceremony-item">${line}</div>`;
+            }
+            html += '</div>';
+          }
+          document.getElementById('invite-result').innerHTML = html;
+          fireConfetti(80);
+          toast('🎊 ' + d.node.name + ' inducted! ' + d.ceremony.length + ' ceremonial proclamations read.');
+          loadFleet();
+        })
+        .catch(e => {
+          document.getElementById('invite-form').style.display = 'block';
+          document.getElementById('invite-result').style.display = 'none';
+          toast('Error: ' + e.message, 'error');
+        });
+    }
+
+    function discoverLAN() {
+      const container = document.getElementById('discovery-results');
+      container.innerHTML = '<div style="text-align:center;padding:2rem;"><span class="spinner"></span> Scanning LAN for unregistered hosts...</div>';
+
+      fetch('/api/discover')
+        .then(r => r.json())
+        .then(data => {
+          if (!data.discovered || !data.discovered.length) {
+            container.innerHTML = '<div class="empty-state">📡 No unregistered hosts found on the LAN.</div>';
+            return;
+          }
+          let html = `<div style="margin-bottom:0.5rem;color:var(--muted);font-size:0.85rem;">Found ${data.count} host(s) · ${new Date(data.timestamp).toLocaleString()}</div>`;
+          for (const h of data.discovered) {
+            const services = (h.services || []).map(s => `<span class="model-tag">${s}</span>`).join('');
+            const models = (h.ollama_models || []).map(m => `<span class="model-tag" style="background:rgba(56,189,248,0.08);border-color:rgba(56,189,248,0.15);">🤖 ${escapeHtml(m)}</span>`).join('');
+            const hasOllama = models ? '<br/><span style="font-size:0.8rem;color:#38bdf8;">Ollama:</span> ' + models : '';
+            html += `<div class="node-card" style="border-left:3px solid ${h.reachable ? '#4ade80' : '#64748b'};">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:0.5rem;">
+                <div>
+                  <strong style="font-size:1.05rem;">${escapeHtml(h.name)}</strong>
+                  <span style="color:var(--muted);font-size:0.85rem;"> ${escapeHtml(h.ip)}</span>
+                </div>
+                <button class="primary" onclick="inviteDiscovered(this)" data-name="${escapeHtml(h.name)}" data-ip="${escapeHtml(h.ip)}" data-ram="0" data-models='${JSON.stringify(h.ollama_models || []).replace(/'/g, "&apos;")}'>🎊 Invite</button>
+              </div>
+              <div style="margin-top:0.3rem;font-size:0.85rem;color:var(--muted);">
+                ${h.reachable ? '🟢 reachable' : '⚫ unreachable'} ${h.latency_ms ? '(' + h.latency_ms + 'ms)' : ''} · ${escapeHtml(h.os_hint)}
+              </div>
+              <div style="margin-top:0.3rem;">${services}</div>
+              <div>${hasOllama}</div>
+            </div>`;
+          }
+          container.innerHTML = html;
+        })
+        .catch(e => {
+          container.innerHTML = '<div class="empty-state" style="color:#f87171;">Scan failed: ' + e.message + '</div>';
+        });
+    }
+
+    function inviteDiscovered(btn) {
+      const name = btn.dataset.name;
+      const ip = btn.dataset.ip;
+      const ramGuess = parseFloat(btn.dataset.ram) || 0;
+      let models = [];
+      try { models = JSON.parse(btn.dataset.models || '[]'); } catch(e) {}
+      document.getElementById('invite-name').value = name;
+      document.getElementById('invite-ip').value = ip;
+      document.getElementById('invite-ram').value = ramGuess || '';
+      document.getElementById('invite-gpu').value = 'false';
+      document.getElementById('invite-models').value = (models || []).join(', ');
+      document.getElementById('invite-role').value = 'Discovered on LAN' + (models.length ? ' (Ollama: ' + models.join(', ') + ')' : '');
+      document.getElementById('invite-form').style.display = 'block';
+      document.getElementById('invite-result').style.display = 'none';
+      openModal('invite-modal');
+    }
+
+    function loadHealthLog() {
+      fetch('/api/health-log?limit=100')
+        .then(r => r.json())
+        .then(data => {
+          healthLog = data;
+          const container = document.getElementById('healthlog-container');
+          if (!data.length) {
+            container.innerHTML = '<h2>Examination Log</h2><div class="empty-state">No examinations yet. Cough on some nodes.</div>';
+            return;
+          }
+          let html = '<h2>Examination Log <span style="font-weight:400;font-size:0.85rem;color:var(--muted);">(last ' + data.length + ' entries)</span></h2>';
+          for (const e of data.slice().reverse()) {
+            const icon = e.event === 'joined' ? '🎊' : e.event === 'cough_test' ? '🫁' : e.event === 'full_scan' ? '🔬' : '📋';
+            html += `<div class="health-log-item">
+              <span class="time">${new Date(e.timestamp).toLocaleString()}</span>
+              ${icon} <strong>${escapeHtml(e.node)}</strong> — ${escapeHtml(e.event.replace('_', ' '))}
+              <span style="color:var(--muted);font-size:0.8rem;">· ${escapeHtml(e.detail.substring(0, 120))}${e.detail.length > 120 ? '...' : ''}</span>
+            </div>`;
+          }
+          container.innerHTML = html;
+        })
+        .catch(e => {
+          document.getElementById('healthlog-container').innerHTML = '<h2>Examination Log</h2><div class="empty-state" style="color:#f87171;">Error: ' + e.message + '</div>';
+        });
+    }
+
+    function loadTrapHealth() {
+      const container = document.getElementById('traps-container');
+      container.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem;">
+        <h2 style="margin:0;">📡 ALBATROSS Trap Network</h2>
+        <button class="secondary" onclick="loadTrapHealth()">🔄 Refresh</button>
+      </div>
+      <div style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem;">
+        Real-time ALBATROSS trap receipts from all fleet nodes. Each entry shows when a trap was received and its origin.
+      </div>
+      <div style="text-align:center;padding:2rem;"><span class="spinner"></span> Loading trap network...</div>`;
+
+      fetch('/api/fleet/trap-health')
+        .then(r => r.json())
+        .then(data => {
+          let html = '<div style="margin-bottom:0.5rem;color:var(--muted);font-size:0.85rem;">Last updated: ' + new Date(data.timestamp).toLocaleString() + '</div>';
+          const nodes = data.nodes || {};
+          let anyData = false;
+          for (const [name, info] of Object.entries(nodes)) {
+            anyData = true;
+            const count = info.count || 0;
+            const traps = info.traps || [];
+            const statusIcon = count > 0 ? '🟢' : info.error ? '🔴' : '⚫';
+            html += `<div class="node-card" style="border-left:3px solid ${count > 0 ? '#4ade80' : '#64748b'};">
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
+                <div>
+                  <strong style="font-size:1.05rem;">${statusIcon} ${escapeHtml(name)}</strong>
+                  <span style="color:var(--muted);font-size:0.85rem;"> — ${count} trap(s) in log</span>
+                </div>
+              </div>
+              ${info.error ? `<div style="margin-top:0.3rem;font-size:0.85rem;color:#f87171;">⚠️ ${escapeHtml(info.error)}</div>` : ''}
+              ${traps.length ? '<div style="margin-top:0.5rem;max-height:300px;overflow-y:auto;">' +
+                traps.map(t => `<div class="health-log-item" style="font-size:0.8rem;font-family:monospace;">${escapeHtml(t)}</div>`).join('') +
+                '</div>' : '<div style="margin-top:0.5rem;color:var(--muted);font-size:0.85rem;">No trap receipts yet.</div>'}
+            </div>`;
+          }
+          if (!anyData) {
+            html += '<div class="empty-state">No trap data available.</div>';
+          }
+          container.innerHTML = html;
+        })
+        .catch(e => {
+          container.innerHTML = '<div class="empty-state" style="color:#f87171;">Failed to load trap network: ' + e.message + '</div>';
+        });
+    }
+
+    function loadInvites() {
+      fetch('/api/invites')
+        .then(r => r.json())
+        .then(data => {
+          const container = document.getElementById('invites-container');
+          if (!data.length) {
+            container.innerHTML = '<h2>Ceremonial Invitations</h2><div class="empty-state">No invitations yet. Click "Invite LAVE" above!</div>';
+            return;
+          }
+          let html = '<h2>Ceremonial Invitations</h2>';
+          for (const i of data.slice().reverse()) {
+            html += `<div class="node-card" style="padding:1rem;">
+              <strong style="font-size:1.1rem;">🎊 ${escapeHtml(i.name)}</strong>
+              <span style="color:var(--muted);font-size:0.85rem;"> — ${new Date(i.timestamp).toLocaleString()}</span>
+              <div style="margin-top:0.3rem;font-size:0.85rem;color:var(--muted);">Specs offered: ${escapeHtml(i.specs)}</div>
+            </div>`;
+          }
+          container.innerHTML = html;
+        });
+    }
+
+    loadFleet();
+    setInterval(loadFleet, 15000);
+  </script>
+</body>
+</html>

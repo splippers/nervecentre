@@ -748,6 +748,15 @@ ${SIC_LOC_BODY}
         proxy_read_timeout 120s;
     }
 
+    # Albert Edwin Freethy — static heritage site
+    location = /albert-freethy {
+        return 301 http://\$host/albert-freethy/;
+    }
+    location /albert-freethy/ {
+        alias /mnt/SANDIEGO/Projects/albert-freethy/web/;
+        index index.html;
+    }
+
     # Maldon Reborn — static heritage site (no trailing slash redirect needed, try_files handles it)
     location = /maldon-reborn {
         return 301 http://\$host/maldon-reborn/;

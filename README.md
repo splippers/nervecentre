@@ -40,8 +40,14 @@ NerveCentre is not:
 
 DESIGN PHILOSOPHY
 
+CURRENT DEPLOYMENT: EDDIE (192.168.1.1)  
+Internal: http://192.168.1.1/nc/  
+External: https://nervecentre.splippers.com/nc/ (TLS, Cloudflare Access restricted)  
+
+All services are proxied under a /nc/ path prefix. This is the only supported deployment topology.
+
 NO CANONICAL HOST  
-There is no “correct” machine. NerveCentre can live on Eddie, Marvin, a dedicated load balancer, or behind a floating VIP.
+There is no “correct” machine. NerveCentre can live on Eddie, a dedicated load balancer, or behind a floating VIP.
 
 VISIBILITY OVER MAGIC  
 Services are proxied or redirected deliberately. When path-prefix proxying is brittle, HTTP redirects are used instead.
@@ -64,6 +70,7 @@ NerveCentre ties together independent services such as:
 - Monyatron
 - Jonotron
 - Deanotron
+- Charkive (SAN fluff scanner)
 - Project prioritiser dashboard (projectscan)
 
 Each service remains independently runnable. NerveCentre does not own them — it routes to them.

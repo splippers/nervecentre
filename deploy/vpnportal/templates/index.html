@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VPN Portal — Splippers</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg0: #06080c;
+      --bg1: #0d1118;
+      --edge: rgba(255, 255, 255, 0.06);
+      --text: #e9eef5;
+      --muted: #94a3b8;
+      --vpn: #22d3ee;
+      --card-radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "DM Sans", system-ui, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 12% -10%, rgba(34, 211, 238, 0.10), transparent 55%),
+        linear-gradient(165deg, var(--bg0), var(--bg1) 45%, #05070b);
+      line-height: 1.45;
+    }
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1.35rem 3rem;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+    header .sub {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    .status-bar {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+    .status-chip {
+      padding: 0.5rem 1rem;
+      border-radius: 999px;
+      border: 1px solid var(--edge);
+      background: rgba(14, 18, 26, 0.72);
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .status-chip .num {
+      color: var(--text);
+      font-weight: 700;
+    }
+    .card {
+      border-radius: var(--card-radius);
+      border: 1px solid var(--edge);
+      background: rgba(14, 18, 26, 0.72);
+      backdrop-filter: blur(12px);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 18px 44px rgba(0,0,0,0.35);
+    }
+    .card h2 {
+      margin: 0 0 1rem;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    th {
+      text-align: left;
+      padding: 0.6rem 0.5rem;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--edge);
+    }
+    td {
+      padding: 0.6rem 0.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .alive { color: #4ade80; }
+    .dead { color: #f87171; }
+    .unknown { color: var(--muted); }
+    .actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    button, .btn {
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--edge);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    button:hover, .btn:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.15);
+    }
+    button.primary {
+      background: rgba(34, 211, 238, 0.12);
+      border-color: rgba(34, 211, 238, 0.3);
+      color: #22d3ee;
+    }
+    button.primary:hover {
+      background: rgba(34, 211, 238, 0.2);
+    }
+    button.danger {
+      background: rgba(248, 113, 113, 0.1);
+      border-color: rgba(248, 113, 113, 0.25);
+      color: #f87171;
+    }
+    button.danger:hover {
+      background: rgba(248, 113, 113, 0.2);
+    }
+    input, select {
+      padding: 0.6rem 0.8rem;
+      border-radius: 8px;
+      border: 1px solid var(--edge);
+      background: rgba(0,0,0,0.3);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+      width: 100%;
+    }
+    input:focus { outline: none; border-color: rgba(34, 211, 238, 0.5); }
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: var(--bg1);
+      border: 1px solid var(--edge);
+      border-radius: var(--card-radius);
+      padding: 2rem;
+      max-width: 520px;
+      width: 90%;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    .modal h2 { margin: 0 0 1rem; }
+    .modal .close {
+      float: right;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0;
+    }
+    .modal .close:hover { color: var(--text); }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; margin-bottom: 0.3rem; color: var(--muted); font-size: 0.85rem; }
+    .qr-box {
+      text-align: center;
+      padding: 1rem;
+    }
+    .qr-box img { max-width: 250px; border-radius: 8px; }
+    .config-text {
+      background: rgba(0,0,0,0.4);
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: monospace;
+      font-size: 0.75rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+      margin: 1rem 0;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--muted);
+    }
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid var(--edge);
+      border-top-color: var(--vpn);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      background: var(--bg1);
+      border: 1px solid var(--edge);
+      z-index: 200;
+      display: none;
+      max-width: 400px;
+    }
+    .toast.show { display: block; }
+    .toast.error { border-color: rgba(248, 113, 113, 0.4); }
+    .toast.success { border-color: rgba(74, 222, 128, 0.4); }
+    .endpoint-info {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .endpoint-info strong { color: var(--text); }
+    .btn-connect {
+      background: rgba(34, 211, 238, 0.15);
+      border-color: rgba(34, 211, 238, 0.35);
+      color: #22d3ee;
+      font-weight: 700;
+    }
+    .btn-connect:hover {
+      background: rgba(34, 211, 238, 0.25);
+    }
+    .store-badge {
+      display: inline-block;
+      padding: 0.7rem 1.2rem;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--edge);
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: background 0.15s;
+    }
+    .store-badge:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    .connect-block {
+      text-align: center;
+      padding: 1rem 0;
+    }
+    .connect-block .big-link {
+      display: block;
+      padding: 1.2rem;
+      border-radius: 12px;
+      background: rgba(34, 211, 238, 0.08);
+      border: 2px solid rgba(34, 211, 238, 0.25);
+      color: #22d3ee;
+      text-decoration: none;
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      transition: background 0.15s;
+    }
+    .connect-block .big-link:hover {
+      background: rgba(34, 211, 238, 0.15);
+    }
+    .connect-block .fallback-text {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin: 0.5rem 0;
+    }
+    .store-row {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>VPN Portal</h1>
+        <div class="sub">WireGuard peer management — Splippers LAN</div>
+      </div>
+      <button class="primary" onclick="openCreate()">+ New Peer</button>
+    </header>
+
+    <div class="status-bar">
+      <div class="status-chip">Peers: <span class="num" id="peer-count">0</span></div>
+      <div class="status-chip">Connected: <span class="num alive" id="peer-alive">0</span></div>
+      <div class="status-chip">Subnet: <span class="num">{{ subnet }}.0/24</span></div>
+    </div>
+
+    <div class="endpoint-info" style="margin-bottom: 1.5rem;">
+      Endpoint: <strong>{{ endpoint }}</strong> &middot;
+      Server pubkey: <code id="server-pubkey" style="font-size: 0.75rem;">loading...</code>
+    </div>
+
+    <div class="card">
+      <h2>Peers</h2>
+      <div id="peer-table">
+        <div class="empty-state"><span class="spinner"></span> Loading peers...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create peer modal -->
+  <div class="modal-overlay" id="create-modal">
+    <div class="modal">
+      <button class="close" onclick="closeModal('create-modal')">&times;</button>
+      <h2>New Peer</h2>
+      <div id="create-form">
+        <div class="form-group">
+          <label>Device name</label>
+          <input type="text" id="peer-name" placeholder="e.g. jonipad, marvin-phone" />
+        </div>
+        <button class="primary" onclick="createPeer()">Generate Config</button>
+      </div>
+      <div id="create-result" style="display:none;">
+        <div class="qr-box" id="create-qr"></div>
+        <div class="config-text" id="create-config"></div>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+          <button class="primary" onclick="copyConfig()">Copy Config</button>
+          <button onclick="closeModal('create-modal')">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- View config modal -->
+  <div class="modal-overlay" id="view-modal">
+    <div class="modal">
+      <button class="close" onclick="closeModal('view-modal')">&times;</button>
+      <h2 id="view-title">Peer Config</h2>
+      <div class="qr-box" id="view-qr"></div>
+      <div class="config-text" id="view-config"></div>
+      <div id="view-connect-link" style="text-align:center;"></div>
+      <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+        <button class="primary" onclick="copyViewConfig()">Copy Config</button>
+        <button onclick="closeModal('view-modal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Connect modal -->
+  <div class="modal-overlay" id="connect-modal">
+    <div class="modal">
+      <button class="close" onclick="closeModal('connect-modal')">&times;</button>
+      <h2 id="connect-title">Connect</h2>
+      <div id="connect-body">
+        <div class="connect-block">
+          <div class="spinner" style="margin:1rem auto;"></div>
+          <p style="color:var(--muted);">Loading config...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Revoke confirm modal -->
+  <div class="modal-overlay" id="revoke-modal">
+    <div class="modal">
+      <button class="close" onclick="closeModal('revoke-modal')">&times;</button>
+      <h2>Revoke Peer</h2>
+      <p>Revoking <strong id="revoke-name"></strong> will remove its access immediately.</p>
+      <div style="display:flex; gap:0.5rem;">
+        <button class="danger" onclick="confirmRevoke()">Revoke</button>
+        <button onclick="closeModal('revoke-modal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    let peers = [];
+    let creatingName = '';
+    let revokingName = '';
+    let lastConfig = '';
+
+    function toast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast show ' + type;
+      setTimeout(() => { t.className = 'toast'; }, 3000);
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.add('active');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    function renderPeers(data) {
+      peers = data.peers;
+      document.getElementById('server-pubkey').textContent = data.server_pubkey;
+
+      const alive = peers.filter(p => p.alive).length;
+      document.getElementById('peer-count').textContent = peers.length;
+      document.getElementById('peer-alive').textContent = alive;
+
+      const container = document.getElementById('peer-table');
+
+      if (peers.length === 0) {
+        container.innerHTML = '<div class="empty-state">No peers configured. Create one to get started.</div>';
+        return;
+      }
+
+      let html = `<table>
+        <thead><tr>
+          <th>Device</th>
+          <th>IP</th>
+          <th>Status</th>
+          <th>Handshake</th>
+          <th>Transfer</th>
+          <th>Actions</th>
+        </tr></thead><tbody>`;
+
+      for (const p of peers) {
+        const statusClass = p.alive ? 'alive' : (p.in_wg_conf ? 'dead' : 'unknown');
+        const statusText = p.alive ? 'Connected' : (p.in_wg_conf ? 'Offline' : 'Not in config');
+
+        html += `<tr>
+          <td><strong>${escapeHtml(p.name)}</strong></td>
+          <td><code>${escapeHtml(p.allowed_ips)}</code></td>
+          <td class="${statusClass}">${statusText}</td>
+          <td>${p.handshake_age}</td>
+          <td>↓ ${p.transfer_rx} / ↑ ${p.transfer_tx}</td>
+          <td class="actions">
+            <button onclick="openConnect('${escapeHtml(p.name)}')" class="btn-connect">Connect</button>
+            <button onclick="viewConfig('${escapeHtml(p.name)}')">QR</button>
+            <button class="danger" onclick="openRevoke('${escapeHtml(p.name)}')">Revoke</button>
+          </td>
+        </tr>`;
+      }
+
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+
+    function loadPeers() {
+      fetch('/api/peers')
+        .then(r => r.json())
+        .then(data => renderPeers(data))
+        .catch(e => {
+          document.getElementById('peer-table').innerHTML =
+            '<div class="empty-state" style="color:#f87171;">Failed to load peers: ' + e.message + '</div>';
+        });
+    }
+
+    function openCreate() {
+      document.getElementById('create-form').style.display = 'block';
+      document.getElementById('create-result').style.display = 'none';
+      document.getElementById('peer-name').value = '';
+      openModal('create-modal');
+    }
+
+    function createPeer() {
+      const name = document.getElementById('peer-name').value.trim();
+      if (!name) { toast('Enter a device name', 'error'); return; }
+
+      creatingName = name;
+      document.getElementById('create-form').style.display = 'none';
+      document.getElementById('create-result').style.display = 'block';
+      document.getElementById('create-qr').innerHTML = '<span class="spinner"></span> Generating...';
+      document.getElementById('create-config').textContent = '';
+
+      fetch('/api/peers/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name }),
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.error) {
+            toast(data.error, 'error');
+            document.getElementById('create-form').style.display = 'block';
+            document.getElementById('create-result').style.display = 'none';
+            return;
+          }
+          lastConfig = data.config_text;
+          document.getElementById('create-qr').innerHTML = `<img src="data:image/png;base64,${data.qr_b64}" alt="QR Code for ${name}" />`;
+          document.getElementById('create-config').textContent = data.config_text;
+          toast(`Peer '${name}' created at ${data.ip}`);
+          loadPeers();
+          // Add wireguard:// link above the copy buttons
+          const resultDiv = document.getElementById('create-result');
+          const existingBtns = resultDiv.querySelector('div:last-child');
+          if (data.wireguard_uri) {
+            const wgLink = document.createElement('a');
+            wgLink.href = data.wireguard_uri;
+            wgLink.style.cssText = 'display:block;text-align:center;padding:0.7rem;margin-bottom:0.7rem;border-radius:10px;background:rgba(34,211,238,0.1);border:1px solid rgba(34,211,238,0.25);color:#22d3ee;text-decoration:none;font-weight:700;';
+            wgLink.textContent = '⚡ Connect ' + name + ' on this device';
+            resultDiv.insertBefore(wgLink, existingBtns);
+          }
+        })
+        .catch(e => {
+          toast('Error: ' + e.message, 'error');
+          document.getElementById('create-form').style.display = 'block';
+          document.getElementById('create-result').style.display = 'none';
+        });
+    }
+
+    let connectName = '';
+    let connectUri = '';
+
+    function openConnect(name) {
+      connectName = name;
+      document.getElementById('connect-title').textContent = 'Connect ' + name;
+      document.getElementById('connect-body').innerHTML =
+        '<div class="connect-block"><span class="spinner" style="margin:1rem auto;"></span><p style="color:var(--muted);">Preparing config...</p></div>';
+      openModal('connect-modal');
+
+      fetch('/api/peers/' + encodeURIComponent(name) + '/config')
+        .then(r => r.json())
+        .then(data => {
+          if (data.error) { toast(data.error, 'error'); closeModal('connect-modal'); return; }
+          connectUri = data.wireguard_uri;
+          lastConfig = data.config_text;
+
+          const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+          const isAndroid = /Android/i.test(navigator.userAgent);
+          const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+          const storeLinks = isAndroid
+            ? '<a class="store-badge" href="https://play.google.com/store/apps/details?id=com.wireguard.android" target="_blank">Google Play</a>'
+            : isIOS
+            ? '<a class="store-badge" href="https://apps.apple.com/app/wireguard/id1441195209" target="_blank">App Store</a>'
+            : '<a class="store-badge" href="https://www.wireguard.com/install/" target="_blank">wireguard.com</a>';
+
+          document.getElementById('connect-body').innerHTML = `
+            <div class="connect-block">
+              <a class="big-link" id="wg-deep-link" href="${connectUri}">
+                ⚡ Connect ${escapeHtml(name)}
+              </a>
+              <p class="fallback-text">Opens WireGuard app and imports config automatically.</p>
+              <div class="store-row">
+                ${storeLinks}
+              </div>
+              <p class="fallback-text" style="margin-top:1rem;">Not working? Use QR code below:</p>
+              <div class="qr-box"><img src="data:image/png;base64,${data.qr_b64}" alt="QR for ${name}" /></div>
+              <p class="fallback-text">Or copy the config manually:</p>
+              <div class="config-text" style="text-align:left;">${escapeHtml(lastConfig)}</div>
+              <div style="display:flex; gap:0.5rem; justify-content:center;">
+                <button class="primary" onclick="copyConfig()">Copy Config</button>
+                <button onclick="closeModal('connect-modal')">Close</button>
+              </div>
+            </div>`;
+        })
+        .catch(e => {
+          document.getElementById('connect-body').innerHTML =
+            '<div class="connect-block"><p style="color:#f87171;">Error: ' + e.message + '</p></div>';
+        });
+    }
+
+    function viewConfig(name) {
+      document.getElementById('view-title').textContent = name + ' Config';
+      document.getElementById('view-qr').innerHTML = '<span class="spinner"></span>';
+      document.getElementById('view-config').textContent = '';
+      document.getElementById('view-connect-link').innerHTML = '';
+
+      fetch('/api/peers/' + encodeURIComponent(name) + '/config')
+        .then(r => r.json())
+        .then(data => {
+          if (data.error) { toast(data.error, 'error'); return; }
+          lastConfig = data.config_text;
+          document.getElementById('view-qr').innerHTML = `<img src="data:image/png;base64,${data.qr_b64}" alt="QR for ${name}" />`;
+          document.getElementById('view-config').textContent = data.config_text;
+          document.getElementById('view-connect-link').innerHTML =
+            `<a href="${data.wireguard_uri}" style="display:inline-block;margin:0.5rem 0 1rem;padding:0.6rem 1.2rem;border-radius:10px;background:rgba(34,211,238,0.1);border:1px solid rgba(34,211,238,0.25);color:#22d3ee;text-decoration:none;font-weight:700;">⚡ Connect on this device</a>`;
+          openModal('view-modal');
+        })
+        .catch(e => toast('Error: ' + e.message, 'error'));
+    }
+
+    function copyConfig() {
+      navigator.clipboard.writeText(lastConfig)
+        .then(() => toast('Config copied to clipboard'))
+        .catch(() => toast('Failed to copy', 'error'));
+    }
+
+    function copyViewConfig() {
+      copyConfig();
+    }
+
+    function openRevoke(name) {
+      revokingName = name;
+      document.getElementById('revoke-name').textContent = name;
+      openModal('revoke-modal');
+    }
+
+    function confirmRevoke() {
+      const name = revokingName;
+      closeModal('revoke-modal');
+
+      fetch('/api/peers/' + encodeURIComponent(name) + '/revoke', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+          if (data.error) { toast(data.error, 'error'); return; }
+          toast(`Peer '${name}' revoked`);
+          loadPeers();
+        })
+        .catch(e => toast('Error: ' + e.message, 'error'));
+    }
+
+    loadPeers();
+    setInterval(loadPeers, 10000);
+  </script>
+</body>
+</html>

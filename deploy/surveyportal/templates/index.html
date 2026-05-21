@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Survey Portal — Splippers</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg0: #06080c; --bg1: #0d1118; --edge: rgba(255,255,255,0.06);
+      --text: #e9eef5; --muted: #94a3b8; --accent: #4ade80;
+      --card-radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh;
+      font-family: "DM Sans", system-ui, sans-serif;
+      color: var(--text);
+      background: radial-gradient(1200px 600px at 12% -10%, rgba(74,222,128,0.10), transparent 55%),
+                  linear-gradient(165deg, var(--bg0), var(--bg1) 45%, #05070b);
+      line-height: 1.45;
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 2rem 1.35rem 3rem; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+    header h1 { margin: 0; font-size: 1.75rem; font-weight: 700; letter-spacing: -0.03em; }
+    header .sub { color: var(--muted); font-size: 0.95rem; }
+    .status-bar { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; }
+    .status-chip { padding: 0.5rem 1rem; border-radius: 999px; border: 1px solid var(--edge); background: rgba(14,18,26,0.72); font-size: 0.85rem; color: var(--muted); }
+    .status-chip .num { color: var(--text); font-weight: 700; }
+    .card { border-radius: var(--card-radius); border: 1px solid var(--edge); background: rgba(14,18,26,0.72); backdrop-filter: blur(12px); padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 18px 44px rgba(0,0,0,0.35); }
+    .card h2 { margin: 0 0 1rem; font-size: 1.2rem; font-weight: 700; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th { text-align: left; padding: 0.6rem 0.5rem; color: var(--muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--edge); }
+    td { padding: 0.6rem 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    button, .btn { padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--edge); background: rgba(255,255,255,0.04); color: var(--text); font-family: inherit; font-size: 0.85rem; cursor: pointer; transition: background 0.15s; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; }
+    button:hover, .btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); }
+    button.primary { background: rgba(74,222,128,0.12); border-color: rgba(74,222,128,0.3); color: #4ade80; }
+    button.primary:hover { background: rgba(74,222,128,0.2); }
+    button.danger { background: rgba(248,113,113,0.1); border-color: rgba(248,113,113,0.25); color: #f87171; }
+    button.danger:hover { background: rgba(248,113,113,0.2); }
+    input, select, textarea { padding: 0.6rem 0.8rem; border-radius: 8px; border: 1px solid var(--edge); background: rgba(0,0,0,0.3); color: var(--text); font-family: inherit; font-size: 0.9rem; width: 100%; }
+    textarea { min-height: 80px; resize: vertical; }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: rgba(74,222,128,0.5); }
+    .modal-overlay { display: none; position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index:100; align-items:center; justify-content:center; }
+    .modal-overlay.active { display: flex; }
+    .modal { background: var(--bg1); border: 1px solid var(--edge); border-radius: var(--card-radius); padding: 2rem; max-width: 620px; width: 90%; max-height: 85vh; overflow-y: auto; }
+    .modal h2 { margin: 0 0 1rem; }
+    .modal .close { float: right; background: none; border: none; color: var(--muted); font-size: 1.5rem; cursor: pointer; padding: 0; }
+    .modal .close:hover { color: var(--text); }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; margin-bottom: 0.3rem; color: var(--muted); font-size: 0.85rem; }
+    .empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--edge); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .toast { position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem; border-radius: 12px; background: var(--bg1); border: 1px solid var(--edge); z-index: 200; display: none; max-width: 400px; }
+    .toast.show { display: block; }
+    .toast.error { border-color: rgba(248,113,113,0.4); }
+    .toast.success { border-color: rgba(74,222,128,0.4); }
+    .badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .badge-active { background: rgba(74,222,128,0.15); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
+    .badge-stub { background: rgba(148,163,184,0.1); color: #94a3b8; border: 1px solid rgba(148,163,184,0.2); }
+    .badge-concept { background: rgba(251,146,60,0.12); color: #fb923c; border: 1px solid rgba(251,146,60,0.3); }
+    .badge-parked { background: rgba(244,114,182,0.1); color: #f472b6; border: 1px solid rgba(244,114,182,0.25); }
+    .badge-unknown { background: rgba(148,163,184,0.05); color: var(--muted); border: 1px solid var(--edge); }
+    .survey-item { border: 1px solid var(--edge); border-radius: 12px; padding: 1rem; margin-bottom: 0.75rem; background: rgba(0,0,0,0.15); }
+    .survey-item .meta { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.5rem; }
+    .survey-item .section-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-top: 0.5rem; }
+    .tab-bar { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+    .tab-bar button { border-radius: 999px; padding: 0.5rem 1.2rem; }
+    .tab-bar button.active { background: rgba(74,222,128,0.15); border-color: rgba(74,222,128,0.35); color: #4ade80; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Survey Portal</h1>
+        <div class="sub">Add ideas, context, and notes to projects — feed the AI teams</div>
+      </div>
+      <button class="primary" onclick="openSurvey()">+ New Survey</button>
+    </header>
+
+    <div class="status-bar">
+      <div class="status-chip">Projects: <span class="num" id="project-count">0</span></div>
+      <div class="status-chip">Surveys: <span class="num" id="survey-count">{{ survey_count }}</span></div>
+    </div>
+
+    <div class="tab-bar">
+      <button class="active" onclick="switchTab('projects', this)">Projects</button>
+      <button onclick="switchTab('surveys', this)">All Surveys</button>
+    </div>
+
+    <div id="tab-projects">
+      <div class="card" id="project-list">
+        <h2>Projects</h2>
+        <div style="text-align:center;padding:2rem;"><span class="spinner"></span> Loading projects...</div>
+      </div>
+    </div>
+
+    <div id="tab-surveys" class="hidden">
+      <div class="card" id="survey-list">
+        <h2>All Surveys</h2>
+        <div style="text-align:center;padding:2rem;"><span class="spinner"></span> Loading surveys...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Survey modal -->
+  <div class="modal-overlay" id="survey-modal">
+    <div class="modal">
+      <button class="close" onclick="closeModal('survey-modal')">&times;</button>
+      <h2 id="survey-modal-title">New Survey</h2>
+      <div class="form-group">
+        <label>Project</label>
+        <select id="survey-project"></select>
+      </div>
+      <div class="form-group">
+        <label>Ideas / Vision</label>
+        <textarea id="survey-ideas" placeholder="What should this project become? Big picture ideas..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Context / Background</label>
+        <textarea id="survey-context" placeholder="Relevant context, history, constraints..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Pain Points</label>
+        <textarea id="survey-pain" placeholder="What's broken, missing, or frustrating?"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Desired Features</label>
+        <textarea id="survey-features" placeholder="Specific features or capabilities wanted..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Priority</label>
+        <select id="survey-priority">
+          <option value="low">Low</option>
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+          <option value="critical">Critical</option>
+        </select>
+      </div>
+      <button class="primary" onclick="submitSurvey()">Save Survey</button>
+    </div>
+  </div>
+
+  <!-- View survey modal -->
+  <div class="modal-overlay" id="view-modal">
+    <div class="modal">
+      <button class="close" onclick="closeModal('view-modal')">&times;</button>
+      <h2 id="view-title">Survey</h2>
+      <div id="view-body"></div>
+      <div style="margin-top:1rem;display:flex;gap:0.5rem;">
+        <button class="danger" onclick="deleteSurvey()">Delete</button>
+        <button onclick="closeModal('view-modal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    let projects = [];
+    let surveys = [];
+    let currentSurveyId = null;
+
+    function toast(msg, type) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.className = 'toast show ' + (type||'success');
+      setTimeout(() => { t.className = 'toast'; }, 3000);
+    }
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+    function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+    function switchTab(tab, btn) {
+      document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-projects').classList.toggle('hidden', tab !== 'projects');
+      document.getElementById('tab-surveys').classList.toggle('hidden', tab !== 'surveys');
+    }
+
+    function statusBadge(status) {
+      const cls = 'badge-' + (status || 'unknown');
+      return `<span class="badge ${cls}">${escapeHtml(status || 'unknown')}</span>`;
+    }
+
+    function loadProjects() {
+      fetch('/api/projects')
+        .then(r => r.json())
+        .then(data => {
+          projects = data;
+          document.getElementById('project-count').textContent = projects.length;
+          renderProjects();
+        })
+        .catch(e => {
+          document.getElementById('project-list').innerHTML = '<div class="empty-state" style="color:#f87171;">Error: ' + e.message + '</div>';
+        });
+    }
+
+    function renderProjects() {
+      const container = document.getElementById('project-list');
+      if (!projects.length) {
+        container.innerHTML = '<div class="card"><h2>Projects</h2><div class="empty-state">No projects found.</div></div>';
+        return;
+      }
+      let html = '<h2>Projects <span style="font-weight:400;font-size:0.85rem;color:var(--muted);">— click to add ideas</span></h2><table><thead><tr><th>Project</th><th>Status</th><th>Git</th><th>Actions</th></tr></thead><tbody>';
+      for (const p of projects) {
+        html += `<tr>
+          <td><strong>${escapeHtml(p.name)}</strong></td>
+          <td>${statusBadge(p.status)}</td>
+          <td>${p.is_git ? '✓' : '—'}</td>
+          <td class="actions">
+            <button class="primary" onclick="openSurveyFor('${escapeHtml(p.name)}')">+ Add Ideas</button>
+            <button onclick="viewProjectSurveys('${escapeHtml(p.name)}')">View Surveys</button>
+          </td>
+        </tr>`;
+      }
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+
+    function loadSurveys() {
+      fetch('/api/surveys')
+        .then(r => r.json())
+        .then(data => {
+          surveys = data;
+          document.getElementById('survey-count').textContent = surveys.length;
+          renderSurveys();
+        });
+    }
+
+    function renderSurveys(filterProject) {
+      const container = document.getElementById('survey-list');
+      let filtered = surveys;
+      if (filterProject) filtered = filtered.filter(s => s.project === filterProject);
+      if (!filtered.length) {
+        container.innerHTML = '<h2>All Surveys</h2><div class="empty-state">No surveys yet. Add ideas to a project above.</div>';
+        return;
+      }
+      let html = '<h2>' + (filterProject ? 'Surveys for ' + escapeHtml(filterProject) : 'All Surveys') + '</h2>';
+      for (const s of filtered) {
+        html += `<div class="survey-item" style="cursor:pointer;" onclick="viewSurvey('${s.id}')">
+          <div class="meta"><strong>${escapeHtml(s.project)}</strong> · ${s.priority} · ${new Date(s.created_at).toLocaleString()}</div>
+          ${s.ideas ? '<div class="section-label">Ideas</div><div>' + escapeHtml(s.ideas.substring(0,200)) + (s.ideas.length > 200 ? '...' : '') + '</div>' : ''}
+          ${s.context ? '<div class="section-label" style="margin-top:0.3rem;">Context</div><div style="color:var(--muted);font-size:0.85rem;">' + escapeHtml(s.context.substring(0,150)) + '</div>' : ''}
+        </div>`;
+      }
+      container.innerHTML = html;
+    }
+
+    function openSurvey() { openSurveyFor(''); }
+    function openSurveyFor(project) {
+      document.getElementById('survey-modal-title').textContent = project ? 'Survey: ' + project : 'New Survey';
+      currentSurveyId = null;
+      const sel = document.getElementById('survey-project');
+      sel.innerHTML = projects.map(p => `<option value="${escapeHtml(p.name)}" ${p.name === project ? 'selected' : ''}>${escapeHtml(p.name)}</option>`).join('');
+      document.getElementById('survey-ideas').value = '';
+      document.getElementById('survey-context').value = '';
+      document.getElementById('survey-pain').value = '';
+      document.getElementById('survey-features').value = '';
+      document.getElementById('survey-priority').value = 'medium';
+      openModal('survey-modal');
+    }
+
+    function submitSurvey() {
+      const data = {
+        project: document.getElementById('survey-project').value,
+        ideas: document.getElementById('survey-ideas').value.trim(),
+        context: document.getElementById('survey-context').value.trim(),
+        pain_points: document.getElementById('survey-pain').value.trim(),
+        desired_features: document.getElementById('survey-features').value.trim(),
+        priority: document.getElementById('survey-priority').value,
+      };
+      if (!data.project) { toast('Select a project', 'error'); return; }
+
+      fetch('/api/surveys', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) })
+        .then(r => r.json())
+        .then(d => {
+          if (d.error) { toast(d.error, 'error'); return; }
+          toast('Survey saved for ' + data.project);
+          closeModal('survey-modal');
+          loadSurveys();
+        })
+        .catch(e => toast('Error: ' + e.message, 'error'));
+    }
+
+    function viewSurvey(id) {
+      currentSurveyId = id;
+      const s = surveys.find(x => x.id === id);
+      if (!s) return;
+      document.getElementById('view-title').textContent = s.project + ' Survey';
+      document.getElementById('view-body').innerHTML = `
+        <div class="meta" style="margin-bottom:1rem;color:var(--muted);font-size:0.85rem;">
+          Priority: <strong>${s.priority}</strong> · Created: ${new Date(s.created_at).toLocaleString()} · Updated: ${new Date(s.updated_at).toLocaleString()}
+        </div>
+        ${s.ideas ? '<div class="section-label">Ideas / Vision</div><div style="margin-bottom:0.75rem;white-space:pre-wrap;">' + escapeHtml(s.ideas) + '</div>' : ''}
+        ${s.context ? '<div class="section-label">Context</div><div style="margin-bottom:0.75rem;white-space:pre-wrap;">' + escapeHtml(s.context) + '</div>' : ''}
+        ${s.pain_points ? '<div class="section-label">Pain Points</div><div style="margin-bottom:0.75rem;white-space:pre-wrap;">' + escapeHtml(s.pain_points) + '</div>' : ''}
+        ${s.desired_features ? '<div class="section-label">Desired Features</div><div style="margin-bottom:0.75rem;white-space:pre-wrap;">' + escapeHtml(s.desired_features) + '</div>' : ''}
+      `;
+      openModal('view-modal');
+    }
+
+    function deleteSurvey() {
+      if (!currentSurveyId) return;
+      if (!confirm('Delete this survey?')) return;
+      fetch('/api/surveys/' + currentSurveyId, { method: 'DELETE' })
+        .then(r => r.json())
+        .then(() => { toast('Survey deleted'); closeModal('view-modal'); loadSurveys(); })
+        .catch(e => toast('Error: ' + e.message, 'error'));
+    }
+
+    function viewProjectSurveys(project) {
+      const filtered = surveys.filter(s => s.project === project);
+      if (!filtered.length) {
+        toast('No surveys for ' + project, 'error');
+        return;
+      }
+      renderSurveys(project);
+      switchTab('surveys', document.querySelector('.tab-bar button:nth-child(2)'));
+    }
+
+    loadProjects();
+    loadSurveys();
+  </script>
+</body>
+</html>
