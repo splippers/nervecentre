@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sysload — Splippers</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg0: #06080c; --bg1: #0d1118; --bg2: #141b24;
+      --edge: rgba(255,255,255,0.06);
+      --text: #e9eef5; --muted: #94a3b8;
+      --green: #4ade80; --yellow: #fb923c; --red: #f87171; --cyan: #22d3ee;
+      --card-radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh;
+      font-family: "DM Sans", system-ui, sans-serif;
+      color: var(--text);
+      background: radial-gradient(1200px 600px at 12% -10%, rgba(34,211,238,0.08), transparent 55%),
+                  linear-gradient(165deg, var(--bg0), var(--bg1) 45%, #05070b);
+      line-height: 1.45;
+    }
+    .wrap { max-width: 1400px; margin: 0 auto; padding: 2rem 1.35rem 3rem; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+    header h1 { margin: 0; font-size: 1.75rem; font-weight: 700; letter-spacing: -0.03em; }
+    header .status-line { color: var(--muted); font-size: 0.9rem; }
+    .fleet-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); }
+    .node-card {
+      border-radius: var(--card-radius);
+      border: 1px solid var(--edge);
+      background: rgba(14,18,26,0.72);
+      backdrop-filter: blur(12px);
+      padding: 1.25rem;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 18px 44px rgba(0,0,0,0.35);
+      transition: border-color 0.2s;
+    }
+    .node-card.error { border-color: rgba(248,113,113,0.3); }
+    .node-card .header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;
+    }
+    .node-card .header h2 { margin: 0; font-size: 1.2rem; font-weight: 700; }
+    .node-card .header .meta { font-family: "JetBrains Mono", monospace; font-size: 0.78rem; color: var(--muted); }
+    .bars {
+      display: flex; flex-direction: column; gap: 0.35rem;
+      margin-bottom: 0.75rem;
+    }
+    .bar-row {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-size: 0.8rem;
+    }
+    .bar-row .label { width: 3.5rem; color: var(--muted); font-family: "JetBrains Mono", monospace; font-size: 0.75rem; flex-shrink: 0; }
+    .bar-row .bar-bg {
+      flex: 1; height: 18px; border-radius: 3px;
+      background: rgba(255,255,255,0.04);
+      position: relative; overflow: hidden;
+    }
+    .bar-row .bar-fill {
+      height: 100%; border-radius: 3px;
+      transition: width 0.6s ease;
+      position: relative;
+    }
+    .bar-fill.cpu { background: linear-gradient(90deg, #22d3ee, #38bdf8); }
+    .bar-fill.mem { background: linear-gradient(90deg, #4ade80, #22c55e); }
+    .bar-fill.disk { background: linear-gradient(90deg, #fb923c, #f97316); }
+    .bar-fill.swap { background: linear-gradient(90deg, #c084fc, #a78bfa); }
+    .bar-fill.load { background: linear-gradient(90deg, #f87171, #ef4444); }
+    .bar-row .value {
+      width: 4.5rem; text-align: right;
+      font-family: "JetBrains Mono", monospace; font-size: 0.78rem;
+      flex-shrink: 0;
+    }
+    .proc-table {
+      font-family: "JetBrains Mono", monospace; font-size: 0.72rem;
+      width: 100%; border-collapse: collapse;
+    }
+    .proc-table th {
+      text-align: right; padding: 0.25rem 0.4rem;
+      color: var(--muted); font-weight: 400;
+      border-bottom: 1px solid var(--edge);
+      font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .proc-table th:first-child,
+    .proc-table td:first-child { text-align: left; }
+    .proc-table td {
+      text-align: right; padding: 0.2rem 0.4rem;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      white-space: nowrap;
+    }
+    .proc-table td:first-child { text-align: left; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+    .proc-table .cpu-val { color: var(--cyan); }
+    .proc-table .mem-val { color: var(--green); }
+    .small-info {
+      display: flex; gap: 1rem; flex-wrap: wrap;
+      font-family: "JetBrains Mono", monospace; font-size: 0.72rem;
+      color: var(--muted); margin-top: 0.5rem;
+    }
+    .error-msg { color: var(--red); font-size: 0.85rem; padding: 1rem 0; }
+    .offline-badge { color: var(--muted); font-size: 0.78rem; }
+    .load-grid { display: flex; gap: 0.75rem; margin-bottom: 0.5rem; }
+    .load-item { text-align: center; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 0.4rem 0.6rem; flex: 1; }
+    .load-item .num { font-family: "JetBrains Mono", monospace; font-size: 1.1rem; font-weight: 700; display: block; }
+    .load-item .lbl { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; }
+    .load-item .num.good { color: var(--green); }
+    .load-item .num.ok { color: var(--yellow); }
+    .load-item .num.bad { color: var(--red); }
+    footer { margin-top: 2rem; text-align: center; font-size: 0.85rem; color: rgba(148,163,184,0.5); }
+    .fetch-info { font-size: 0.75rem; color: var(--muted); text-align: right; }
+    .loading { text-align: center; padding: 3rem; color: var(--muted); }
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--edge); border-top-color: var(--cyan); border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 0.5rem; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>⚡ Sysload</h1>
+        <div class="status-line">Near-live system metrics from the fleet</div>
+      </div>
+      <div class="fetch-info">
+        Last: <span id="last-update">—</span>
+        <span id="refresh-indicator" class="spinner" style="display:none"></span>
+      </div>
+    </header>
+    <div id="fleet" class="loading"><span class="spinner"></span> Gathering metrics from fleet nodes...</div>
+    <footer>/sysload/ · NerveCentre · refresh every 3s · SSH /proc reads (zero extra load)</footer>
+  </div>
+
+  <script>
+    function escapeHtml(s) {
+      if (s == null) return '';
+      const d = document.createElement('div');
+      d.textContent = String(s);
+      return d.innerHTML;
+    }
+
+    function loadClass(val, warn, crit) {
+      if (val >= crit) return 'bad';
+      if (val >= warn) return 'ok';
+      return 'good';
+    }
+
+    function barPct(val) {
+      return Math.min(Math.max(val, 0), 100);
+    }
+
+    function nodeHTML(node) {
+      const m = node.metrics || {};
+      const isErr = m.error;
+      let html = `<div class="node-card ${isErr ? 'error' : ''}">
+        <div class="header">
+          <h2>${escapeHtml(node.name)}</h2>
+          <div class="meta">${escapeHtml(node.ip)} · ${node.fetch_ms}ms</div>
+        </div>`;
+
+      if (isErr) {
+        html += `<div class="error-msg">⚠ ${escapeHtml(m.error)}</div>`;
+      } else {
+        const cpu = m.cpu_used_pct || 0;
+        const mem = m.mem_used_pct || 0;
+        const disk = parseFloat(m.disk_used_pct) || 0;
+        const swap = m.swap_used_pct || 0;
+        const load1 = m.load_1m || 0;
+        const load5 = m.load_5m || 0;
+        const load15 = m.load_15m || 0;
+
+        html += `<div class="load-grid">
+          <div class="load-item">
+            <span class="num ${loadClass(load1, 4, 8)}">${load1.toFixed(1)}</span>
+            <span class="lbl">1min</span>
+          </div>
+          <div class="load-item">
+            <span class="num ${loadClass(load5, 4, 8)}">${load5.toFixed(1)}</span>
+            <span class="lbl">5min</span>
+          </div>
+          <div class="load-item">
+            <span class="num ${loadClass(load15, 4, 8)}">${load15.toFixed(1)}</span>
+            <span class="lbl">15min</span>
+          </div>
+        </div>`;
+
+        html += `<div class="bars">
+          <div class="bar-row">
+            <span class="label">CPU</span>
+            <div class="bar-bg"><div class="bar-fill cpu" style="width:${barPct(cpu)}%"></div></div>
+            <span class="value">${cpu.toFixed(1)}%</span>
+          </div>
+          <div class="bar-row">
+            <span class="label">MEM</span>
+            <div class="bar-bg"><div class="bar-fill mem" style="width:${barPct(mem)}%"></div></div>
+            <span class="value">${(m.mem_used_gb || 0).toFixed(1)}/${(m.mem_total_gb || 0).toFixed(1)} GB</span>
+          </div>
+          <div class="bar-row">
+            <span class="label">DISK</span>
+            <div class="bar-bg"><div class="bar-fill disk" style="width:${barPct(disk)}%"></div></div>
+            <span class="value">${disk.toFixed(0)}%</span>
+          </div>
+          ${m.swap_total_gb > 0 ? `<div class="bar-row">
+            <span class="label">SWAP</span>
+            <div class="bar-bg"><div class="bar-fill swap" style="width:${barPct(swap)}%"></div></div>
+            <span class="value">${swap.toFixed(0)}%</span>
+          </div>` : ''}
+        </div>`;
+
+        if (m.top_procs && m.top_procs.length > 0) {
+          html += `<table class="proc-table">
+            <thead><tr><th>CMD</th><th>CPU%</th><th>MEM%</th><th>RSS</th></tr></thead><tbody>`;
+          for (const p of m.top_procs) {
+            html += `<tr>
+              <td title="PID ${p.pid}">${escapeHtml(p.cmd)}</td>
+              <td class="cpu-val">${p.cpu.toFixed(1)}</td>
+              <td class="mem-val">${p.mem.toFixed(1)}</td>
+              <td>${p.rss_mb}M</td>
+            </tr>`;
+          }
+          html += `</tbody></table>`;
+        }
+
+        html += `<div class="small-info">
+          <span>🔄 ${m.running || '?'}/${m.total_procs || '?'} procs</span>
+          <span>${m.cpu_cores || '?'} cores</span>
+          <span>💾 ${escapeHtml(m.uptime || '')}</span>
+        </div>`;
+      }
+
+      html += `</div>`;
+      return html;
+    }
+
+    let prevData = null;
+
+    function render(data) {
+      const container = document.getElementById('fleet');
+      if (!data || !data.nodes) {
+        container.innerHTML = '<div class="error-msg">No data received from backend.</div>';
+        return;
+      }
+
+      let html = '<div class="fleet-grid">';
+      for (const node of data.nodes) {
+        html += nodeHTML(node);
+      }
+      html += '</div>';
+      container.innerHTML = html;
+
+      const ts = data.ts ? new Date(data.ts).toLocaleTimeString() : '—';
+      document.getElementById('last-update').textContent = ts;
+      prevData = data;
+    }
+
+    let fetching = false;
+
+    async function fetchSysload() {
+      if (fetching) return;
+      fetching = true;
+      const indicator = document.getElementById('refresh-indicator');
+      if (indicator) indicator.style.display = 'inline-block';
+      try {
+        const r = await fetch('/api/sysload');
+        const data = await r.json();
+        render(data);
+      } catch (e) {
+        document.getElementById('fleet').innerHTML = `<div class="error-msg">Fetch error: ${escapeHtml(e.message)}</div>`;
+      } finally {
+        fetching = false;
+        if (indicator) indicator.style.display = 'none';
+      }
+    }
+
+    fetchSysload();
+    setInterval(fetchSysload, 3000);
+  </script>
+</body>
+</html>
