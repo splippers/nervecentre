@@ -1,0 +1,278 @@
+# NerveCentre service registry: the single source of truth.
+# Generators read this to produce the nginx server block, landing page and health checks.
+#
+# host    : eddie | marvin  (see [hosts])
+# mode    : proxy    -> nginx proxies /<path>/ to host:port
+#           redirect -> 302 to http://<host-ip>:port/  (for apps with absolute asset paths)
+# state   : up   = expected to be running
+#           down = not running on either host at audit time (2026-10-20); rendered offline, no route
+# fw_blocked : true if the port answers on its own host but is dropped by that host's firewall for the LAN
+# rewrite : sub_filter prefixes so the app's absolute "/api/" etc. work under /<path>/
+
+[hosts]
+eddie  = "192.168.1.1"
+marvin = "192.168.1.2"
+
+[[service]]
+id = "brickwise"
+title = "Brickwise"
+group = "Infrastructure"
+badge = "Storage"
+desc = "Storage / Gluster coordination."
+path = "brickwise"
+host = "eddie"
+port = 8756
+mode = "proxy"
+timeout = 120
+rewrite = ["/api/"]
+
+[[service]]
+id = "archive"
+title = "Felsted Archives"
+group = "Archives"
+badge = "Archive"
+desc = "Felsted Archives (PHP)."
+path = "archive"
+host = "eddie"
+port = 8095
+mode = "proxy"
+timeout = 60
+
+[[service]]
+id = "projects"
+title = "Project Prioritiser"
+group = "Work"
+badge = "Dashboard"
+desc = "projectscan dashboard."
+path = "projects"
+host = "eddie"
+port = 8765
+mode = "proxy"
+timeout = 120
+health = "/"
+auth = true   # 401 = alive (login wall)
+
+[[service]]
+id = "jonotron"
+title = "Jonotron"
+group = "Intelligence and Agents"
+badge = "Agent"
+desc = "AR game design twin: Ollama agent with workspace tools."
+path = "jonotron"
+host = "marvin"
+port = 8012
+mode = "proxy"
+timeout = 600
+rewrite = ["/api/", "/ui/"]
+fw_blocked = true
+
+[[service]]
+id = "charkive"
+title = "Charkive"
+group = "Infrastructure"
+badge = "Scanner"
+desc = "SAN fluff scanner dashboard."
+path = "charkive"
+host = "marvin"
+port = 8082
+mode = "proxy"
+timeout = 120
+rewrite = ["/api/", "/static/"]
+
+[[service]]
+id = "sic"
+title = "Symposium of Infinite Contention"
+group = "Intelligence and Agents"
+badge = "Live"
+desc = "Multi-human AI working salon, plus the Philosophers Football Arena."
+path = "sic"
+host = "marvin"
+port = 8787
+mode = "redirect"
+fw_blocked = true
+
+[[service]]
+id = "deanotron"
+title = "Deanotron"
+group = "Intelligence and Agents"
+badge = "App"
+desc = "Expo web app (absolute asset paths, so redirected)."
+path = "deanotron"
+host = "marvin"
+port = 8791
+mode = "redirect"
+fw_blocked = true
+
+[[service]]
+id = "mail-portal"
+title = "CEO-Sim Mail Portal"
+group = "Work"
+badge = "Mail"
+desc = "Hospital mailbox portal."
+path = "mail-portal"
+host = "marvin"
+port = 8083
+mode = "redirect"
+
+[[service]]
+id = "vpn-portal"
+title = "VPN Portal"
+group = "Infrastructure"
+badge = "VPN"
+desc = "WireGuard peer management."
+path = "vpn-portal"
+host = "marvin"
+port = 8084
+mode = "redirect"
+
+[[service]]
+id = "ceo-simulator"
+title = "CEO-Simulator"
+group = "Intelligence and Agents"
+badge = "Sim"
+desc = "Central Flask app. Container is up on Marvin but the port does not answer."
+path = "ceo-simulator"
+host = "marvin"
+port = 8080
+mode = "proxy"
+timeout = 600
+rewrite = ["/api/"]
+state = "down"
+
+# --- not running on either host at audit time ---
+[[service]]
+id = "monyatron"
+title = "Monyatron"
+group = "Work"
+badge = "Flask"
+desc = "Not running anywhere."
+path = "monyatron"
+host = "eddie"
+port = 5050
+mode = "proxy"
+rewrite = ["/api/"]
+state = "down"
+timeout = 300
+
+[[service]]
+id = "ceos-api"
+title = "CEOS 4.0 API"
+group = "Intelligence and Agents"
+badge = "API"
+desc = "Not running anywhere."
+path = "ceos-api"
+host = "eddie"
+port = 8004
+mode = "proxy"
+state = "down"
+timeout = 600
+
+[[service]]
+id = "splippers-archive"
+title = "Splippers Archive"
+group = "Archives"
+badge = "Archive"
+desc = "Not running anywhere."
+path = "splippers-archive"
+host = "eddie"
+port = 8019
+mode = "proxy"
+rewrite = ["/api/"]
+state = "down"
+
+[[service]]
+id = "cf"
+title = "CF Tunnel Setup Portal"
+group = "Infrastructure"
+badge = "Tunnel"
+desc = "Not running anywhere."
+path = "cf"
+host = "eddie"
+port = 8085
+mode = "proxy"
+state = "down"
+
+[[service]]
+id = "survey-portal"
+title = "Survey Portal"
+group = "Work"
+badge = "Portal"
+desc = "Not running anywhere."
+path = "survey-portal"
+host = "eddie"
+port = 8086
+mode = "redirect"
+state = "down"
+
+[[service]]
+id = "ai-teams"
+title = "AI Teams"
+group = "Intelligence and Agents"
+badge = "Portal"
+desc = "Not running anywhere."
+path = "ai-teams"
+host = "eddie"
+port = 8087
+mode = "redirect"
+state = "down"
+
+[[service]]
+id = "hardware"
+title = "Hardware Resources"
+group = "Infrastructure"
+badge = "Fleet"
+desc = "Not running anywhere."
+path = "hardware"
+host = "eddie"
+port = 8088
+mode = "redirect"
+state = "down"
+
+# --- served by hand-written blocks in extra.conf; listed here only for the landing page ---
+[[service]]
+id = "albert-freethy"
+title = "Albert Edwin Freethy"
+group = "Archives"
+badge = "Heritage"
+desc = "Static heritage site."
+path = "albert-freethy"
+host = "eddie"
+port = 80
+mode = "link"
+health = "/albert-freethy/"
+
+[[service]]
+id = "maldon-reborn"
+title = "Maldon Reborn"
+group = "Archives"
+badge = "Heritage"
+desc = "Static heritage site."
+path = "maldon-reborn"
+host = "eddie"
+port = 80
+mode = "link"
+health = "/maldon-reborn/"
+
+[[service]]
+id = "workadventure"
+title = "WorkAdventure"
+group = "Work"
+badge = "Virtual office"
+desc = "Redirects to the Traefik play host on port 9080."
+path = "workadventure"
+host = "eddie"
+port = 80
+mode = "link"
+state = "down"
+
+[[service]]
+id = "fleet"
+title = "Fleet Telemetry"
+group = "Infrastructure"
+badge = "Fleet"
+desc = "Live health of Eddie, Marvin, LAVE and a12b from the LLDP telemetry hub."
+path = "fleet"
+host = "marvin"
+port = 8471
+mode = "link"
+health = "/fleet/"

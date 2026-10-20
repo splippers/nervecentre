@@ -42,7 +42,7 @@ DESIGN PHILOSOPHY
 
 CURRENT DEPLOYMENT: EDDIE (192.168.1.1)  
 Internal: http://192.168.1.1/nc/  
-External: https://nervecentre.splippers.com/nc/ (TLS, Cloudflare Access restricted)  
+External: https://nc.splippers.com/nc/ (Cloudflare tunnel to Eddie port 80, TLS at the edge)  
 
 All services are proxied under a /nc/ path prefix. This is the only supported deployment topology.
 
