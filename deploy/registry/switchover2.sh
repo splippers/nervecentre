@@ -10,5 +10,5 @@ sudo install -m 644 $D/nerve.conf "$LIVE"
 sudo nginx -t || rollback
 sudo systemctl reload nginx || rollback
 sleep 1
-for p in / /nc/ /fleet/ /fleet/api/fleet; do c=$(curl -s -o /dev/null -m 5 -w "%{http_code}" http://127.0.0.1$p); echo "$p $c"; [ "$c" = 200 ] || rollback; done
+for p in / /nc/ /fleet/ /fleet/api/fleet /brickwise/api/diagnostics; do c=$(curl -s -o /dev/null -m 5 -w "%{http_code}" http://127.0.0.1$p); echo "$p $c"; [ "$c" = 200 ] || rollback; done
 echo SWITCHED

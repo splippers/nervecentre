@@ -24,7 +24,7 @@ host = "eddie"
 port = 8756
 mode = "proxy"
 timeout = 120
-rewrite = ["/api/"]
+# no rewrite: the app prefixes /brickwise/api itself (API_PREFIX); rewriting doubled it
 
 [[service]]
 id = "archive"
