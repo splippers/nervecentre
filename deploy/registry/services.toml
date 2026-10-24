@@ -13,6 +13,12 @@
 eddie  = "192.168.1.1"
 marvin = "192.168.1.2"
 
+# each node's landing page lists its own host's services (plus any marked shared = true)
+# and links to the other node's portal
+[portals]
+eddie  = "http://192.168.1.1/"
+marvin = "https://192.168.1.2/"
+
 [[service]]
 id = "brickwise"
 title = "Brickwise"
@@ -35,6 +41,7 @@ desc = "Felsted Archives (PHP)."
 path = "archive"
 host = "eddie"
 port = 8095
+via_portal = true   # the PHP app listens on Eddie loopback only, so probe it through Eddie's portal
 mode = "proxy"
 timeout = 60
 # the PHP app links from the site root, so every root-relative URL needs the /archive prefix
@@ -277,6 +284,7 @@ group = "Intelligence and Agents"
 badge = "Under construction"
 desc = "Voice-capture mobile app: speak an idea in the moment and it goes to ThoughtFarm for votes, support and dissent."
 path = "craicpype-app"
+shared = true
 host = "eddie"
 port = 80
 mode = "link"
@@ -304,4 +312,5 @@ path = "fleet"
 host = "marvin"
 port = 8471
 mode = "link"
+shared = true   # fleet-wide: show on every node
 health = "/fleet/"

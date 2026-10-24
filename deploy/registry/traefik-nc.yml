@@ -1,0 +1,8 @@
+    # ── NerveCentre over HTTPS (same nginx :81 backend as the HTTP router above) ──
+    # The TLS cert (vault.crt) has SANs vault, vault.marvin and 192.168.1.2.
+    nerve-centre-https:
+      entryPoints: [websecure]
+      rule: "Host(`192.168.1.2`) || Host(`marvin`) || Host(`marvin.local`)"
+      priority: 1
+      service: nginx-backend
+      tls: {}
