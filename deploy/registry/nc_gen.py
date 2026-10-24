@@ -8,6 +8,11 @@ a bearer token) are deliberately omitted; carry them over by hand at switchover.
 """
 import html, os, sys, tomllib
 
+def _q(v):
+    """Quote a value for an nginx directive."""
+    return '"' + v.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
 def load(p):
     with open(p, "rb") as f:
         d = tomllib.load(f)
@@ -42,7 +47,8 @@ def nginx(hosts, svcs, listen, docroot, local=None, extra="", default=False):
             out += ['        proxy_set_header Accept-Encoding "";', "        sub_filter_types application/javascript application/json;",
                     "        sub_filter_once off;"]
             for r in s["rewrite"]:
-                out += [f"        sub_filter '\"{r}' '\"/{p}{r}';", f"        sub_filter \"'{r}\" \"'/{p}{r}\";"]
+                out += [f"        sub_filter {_q(chr(34) + r)} {_q(chr(34) + '/' + p + r)};",
+                        f"        sub_filter {_q(chr(39) + r)} {_q(chr(39) + '/' + p + r)};"]
         out += ["    }", ""]
     if extra:
         out += [extra]

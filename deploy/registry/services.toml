@@ -37,6 +37,9 @@ host = "eddie"
 port = 8095
 mode = "proxy"
 timeout = 60
+# the PHP app links from the site root, so every root-relative URL needs the /archive prefix
+rewrite = ["/\"", "/admin/", "/index.php", "/pics/", "/login/", "/?modern", "/stylesheet.css", "/images/", "/libraries/",
+           "/stories/", "/histories/", "/of/", "/events/", "/village/", "/ppm/", "/alumnibook/"]
 
 [[service]]
 id = "projects"
@@ -70,14 +73,28 @@ fw_blocked = true
 id = "charkive"
 title = "Charkive"
 group = "Infrastructure"
-badge = "Scanner"
-desc = "SAN fluff scanner dashboard."
+badge = "Curation"
+desc = "SAN fluff scanner and important-document curation (read-only). Opens on its own port."
 path = "charkive"
+host = "marvin"
+port = 8097
+mode = "redirect"
+health = "/api/status"
+fw_blocked = true
+
+[[service]]
+id = "ceo-agent-portal"
+title = "CEO Agent Portal"
+group = "Intelligence and Agents"
+badge = "Agents"
+desc = "AI agent portal: job queue, agent registry and the craic knowledge docs."
+# the path keeps the old /craicpype/ name so existing bookmarks work; the real CraicPype app is the placeholder below
+path = "craicpype"
 host = "marvin"
 port = 8082
 mode = "proxy"
 timeout = 120
-rewrite = ["/api/", "/static/"]
+rewrite = ["/api/", "/craic/"]
 
 [[service]]
 id = "sic"
@@ -252,6 +269,18 @@ host = "eddie"
 port = 80
 mode = "link"
 health = "/maldon-reborn/"
+
+[[service]]
+id = "craicpype"
+title = "CraicPype"
+group = "Intelligence and Agents"
+badge = "Under construction"
+desc = "Voice-capture mobile app: speak an idea in the moment and it goes to ThoughtFarm for votes, support and dissent."
+path = "craicpype-app"
+host = "eddie"
+port = 80
+mode = "link"
+state = "down"
 
 [[service]]
 id = "workadventure"

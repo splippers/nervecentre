@@ -10,5 +10,6 @@ sudo install -m 644 $D/nerve.conf "$LIVE"
 sudo nginx -t || rollback
 sudo systemctl reload nginx || rollback
 sleep 1
-for p in / /nc/ /fleet/ /fleet/api/fleet /brickwise/api/diagnostics; do c=$(curl -s -o /dev/null -m 5 -w "%{http_code}" http://127.0.0.1$p); echo "$p $c"; [ "$c" = 200 ] || rollback; done
+for p in / /nc/ /fleet/ /fleet/api/fleet /brickwise/api/diagnostics /craicpype/ /craicpype/api/agents; do c=$(curl -s -o /dev/null -m 5 -w "%{http_code}" http://127.0.0.1$p); echo "$p $c"; [ "$c" = 200 ] || rollback; done
+curl -s -m 5 http://127.0.0.1/archive/ | grep -q 'href="/archive/admin/"' || { echo "archive links not rewritten"; rollback; }
 echo SWITCHED
