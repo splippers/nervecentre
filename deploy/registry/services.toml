@@ -278,6 +278,18 @@ mode = "link"
 health = "/maldon-reborn/"
 
 [[service]]
+id = "leeser"
+title = "Desperately Seeking Mrs Leeser"
+group = "Archives"
+badge = "Family"
+desc = "Jon's 1989/90 English exercise book: animated page turns, transcription, Claude's notes and a comment thread."
+path = "leeser"
+host = "marvin"
+port = 81
+mode = "link"
+health = "/leeser/"
+
+[[service]]
 id = "craicpype"
 title = "CraicPype"
 group = "Intelligence and Agents"
