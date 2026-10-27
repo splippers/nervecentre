@@ -33,6 +33,18 @@ timeout = 120
 # no rewrite: the app prefixes /brickwise/api itself (API_PREFIX); rewriting doubled it
 
 [[service]]
+id = "brickwise-marvin"
+title = "Brickwise"
+group = "Infrastructure"
+badge = "Storage"
+desc = "Storage / Gluster coordination on Marvin."
+path = "brickwise"   # same path as Eddie's: each node's portal routes /brickwise/ to its own
+host = "marvin"
+port = 8756
+mode = "proxy"
+timeout = 120
+
+[[service]]
 id = "archive"
 title = "Felsted Archives"
 group = "Archives"
