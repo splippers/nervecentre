@@ -17,7 +17,7 @@ marvin = "192.168.1.2"
 # and links to the other node's portal
 [portals]
 eddie  = "http://192.168.1.1/"
-marvin = "https://192.168.1.2/"
+marvin = "http://192.168.1.2/"
 
 [[service]]
 id = "brickwise"
@@ -288,6 +288,18 @@ host = "marvin"
 port = 81
 mode = "link"
 health = "/leeser/"
+
+[[service]]
+id = "cloudhub"
+title = "CloudStorage Hub"
+group = "Infrastructure"
+badge = "Backups"
+desc = "Tracks every free cloud-storage tier chosen for backups: quota, last backup, last test restore, setup checklist."
+path = "cloudhub"
+host = "marvin"
+port = 81
+mode = "link"
+health = "/cloudhub/"
 
 [[service]]
 id = "craicpype"
